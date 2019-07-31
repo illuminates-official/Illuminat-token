@@ -82,17 +82,12 @@ contract('Token', function (accounts) {
             assert.equal(await token.owner(), tokenOwner);
         });
         it('advisors check', async function () {
-            // assert.equal(await token.advisors(), advisors);
             assert.equal(+(await token.balanceOf(advisors)), ab);
         });
         it('bounty check', async function () {
-            // assert.equal(await token.bounty(), bounty);
             assert.equal(+(await token.balanceOf(bounty)), bb);
         });
         it('team check', async function () {
-            // assert.equal(await token.team(), team);
-            // assert.equal(+(await token.teamAmount()), tb);
-            // assert.equal(await token.isTeamPaid(), false);
             assert.equal(+(await token.balanceOf(team)), 0);
         });
     });
@@ -101,25 +96,20 @@ contract('Token', function (accounts) {
     describe('Token functionality', async () => {
         beforeEach('init', async function () {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
         });
 
         it('team check', async function () {
             await increaseTime(2 * 365*day);
-            // await token.validate({from: tokenOwner}); 
 
             await token.getTeamTokens();
 
-            // assert.equal(await token.team(), team);
             assert.equal(+(await token.balanceOf(team)), tb);
-            // assert.equal(await token.isTeamPaid(), true);
         });
 
         it('service pay', async function () {
             await token.setDepositeAddress(deposite, {from: tokenOwner});
             assert.equal(+(await token.balanceOf(deposite)), 0);
 
-            // web3.utils.fromAscii("test")
             await token.payService("test", auctionOwner, vs(100), {from: bounty});
             assert.equal(+(await token.balanceOf(deposite)), vs(10));
             assert.equal(+(await token.balanceOf(auctionOwner)), vs(80));
@@ -153,7 +143,6 @@ contract('Token', function (accounts) {
     describe('Requirement check', async () => {
         beforeEach('init', async function () {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
         });
 
         it('team check', async function () {
@@ -164,7 +153,6 @@ contract('Token', function (accounts) {
             assert.equal(+(await token.balanceOf(team)), 0);
 
             await increaseTime(2 * 365*day);
-            // await token.validate({from: tokenOwner}); 
             await token.getTeamTokens();
             assert.equal(+(await token.balanceOf(team)), tb);
 
@@ -203,7 +191,6 @@ contract('Token', function (accounts) {
         
         it('try to get team tokens not by owner', async function () {
             await increaseTime(2 * 365*day);
-            // await token.validate({from: tokenOwner}); 
 
             try {
                 await token.getTeamTokens({from: auctionOwner});
@@ -218,7 +205,6 @@ contract('Token', function (accounts) {
 
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
         });
 
         it('send tokens', async () => {

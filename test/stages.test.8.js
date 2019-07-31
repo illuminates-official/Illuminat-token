@@ -60,8 +60,6 @@ contract('StageThird', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             third = await StageThirdContract.new({from: investOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
-            // await third.addHeir(advisors, {from: investOwner});
             await token.sendTokens([third.address], [thirdStageBalance], {from: tokenOwner});
             await third.setToken(token.address, {from: investOwner});
         });
@@ -144,8 +142,6 @@ contract('StageThird', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             third = await StageThirdContract.new({from: investOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
-            // await third.addHeir(advisors, {from: investOwner});
             await token.sendTokens([third.address], [thirdStageBalance], {from: tokenOwner});
             await third.setToken(token.address, {from: investOwner});
         });
@@ -170,7 +166,6 @@ contract('StageThird', function (accounts) {
             } catch (error) {assert(error.message.includes("Not invested"));}
 
             await increaseTime(duration);
-            // await third.validate({from: investOwner});
             await third.close({from: investOwner});
         });
     });

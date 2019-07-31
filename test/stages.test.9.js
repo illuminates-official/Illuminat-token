@@ -63,8 +63,6 @@ contract('StageFirst', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
-            // await token.addHeir(accounts[2], {from: tokenOwner});
-            // await first.addHeir(accounts[2], {from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
         });
@@ -156,8 +154,6 @@ contract('StageSecond', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             second = await StageSecondContract.new({from: investOwner});
-            // await token.addHeir(accounts[2], {from: tokenOwner});
-            // await first.addHeir(accounts[2], {from: investOwner});
             await token.sendTokens([second.address], [secondStageBalance], {from: tokenOwner});
             await second.setToken(token.address, {from: investOwner});
         });
@@ -249,8 +245,6 @@ contract('StageThird', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             third = await StageThirdContract.new({from: investOwner});
-            // await token.addHeir(accounts[2], {from: tokenOwner});
-            // await first.addHeir(accounts[2], {from: investOwner});
             await token.sendTokens([third.address], [thirdStageBalance], {from: tokenOwner});
             await third.setToken(token.address, {from: investOwner});
         });
