@@ -60,8 +60,6 @@ contract('StageFirst', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
-            // await token.addHeir(accounts[2], {from: tokenOwner});
-            // await first.addHeir(accounts[2], {from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
         });
@@ -73,15 +71,6 @@ contract('StageFirst', function (accounts) {
             assert.equal(await first.investors(0), accounts[2]);
             assert.equal(+(await first.totalInvested()), 100);
         });
-
-        // it('try to send eth through invest function', async () => {
-        //     await first.invest({from: accounts[2], value: 1});
-        //     await first.invest({from: accounts[2], value: 1});
-
-        //     assert.equal(+(await first.investments(accounts[2])), 2);
-        //     assert.equal(await first.investors(0), accounts[2]);
-        //     assert.equal(+(await first.totalInvested()), 2);
-        // });
 
         it('tokens amount', async () => {
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
@@ -105,7 +94,6 @@ contract('StageFirst', function (accounts) {
             await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: vs(10)});
 
             await increaseTime(duration);
-            // await first.validate({from: investOwner});
 
             assert.equal(+(await first.totalInvested()), vs(225));
 
@@ -129,8 +117,6 @@ contract('StageFirst', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
-            // await token.addHeir(accounts[2], {from: tokenOwner});
-            // await first.addHeir(accounts[2], {from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
         });
@@ -157,7 +143,6 @@ contract('StageFirst', function (accounts) {
             await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: vs(5)});
 
             await increaseTime(duration + 1);
-            // await first.validate({from: investOwner});
 
             await first.close({from: investOwner});
 
@@ -174,7 +159,6 @@ contract('StageFirst', function (accounts) {
 
         it('close investments (not by owner)', async () => {
             await increaseTime(duration+1);
-            // await first.validate({from: investOwner});
 
             try {
                 await first.close({from: tokenOwner});
@@ -199,8 +183,6 @@ contract('StageFirst', function (accounts) {
 
         it('invest (after end)', async () => {
             await increaseTime(duration);
-            // await first.validate({from: investOwner});
-
             bal1 = await web3.eth.getBalance(accounts[2]);
             balc1 = await web3.eth.getBalance(first.address);
 

@@ -61,8 +61,6 @@ contract('StageFirst', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
-            // await first.addHeir(advisors, {from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
         });
@@ -153,7 +151,6 @@ contract('StageFirst', function (accounts) {
             await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: vs(5)});
 
             await increaseTime(duration);
-            // await first.validate({from: investOwner});
 
             await first.close({from: investOwner});
 
@@ -168,8 +165,6 @@ contract('StageFirst', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
-            // await first.addHeir(advisors, {from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
         });
@@ -194,7 +189,6 @@ contract('StageFirst', function (accounts) {
             } catch (error) {assert(error.message.includes("Not invested"));}
 
             await increaseTime(duration);
-            // await first.validate({from: investOwner});
             await first.close({from: investOwner});
         });
         
@@ -216,7 +210,6 @@ contract('StageFirst', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[7])), vs(195000));
 
             await increaseTime(duration);
-            // await first.validate({from: investOwner});
 
             try {
                 await first.close({from: investOwner});

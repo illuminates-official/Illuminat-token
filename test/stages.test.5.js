@@ -61,8 +61,6 @@ contract('StageSecond', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             second = await StageSecondContract.new({from: investOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
-            // await second.addHeir(advisors, {from: investOwner});
             await token.sendTokens([second.address], [secondStageBalance], {from: tokenOwner});
             await second.setToken(token.address, {from: investOwner});
         });
@@ -155,7 +153,6 @@ contract('StageSecond', function (accounts) {
             await web3.eth.sendTransaction({from: accounts[7], to: second.address, gas: 150000, value: vs(70)});
 
             await increaseTime(duration);
-            // await second.validate({from: investOwner});
 
             await second.close({from: investOwner});
 
@@ -170,8 +167,6 @@ contract('StageSecond', function (accounts) {
         beforeEach('init', async () => {
             token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
             second = await StageSecondContract.new({from: investOwner});
-            // await token.addHeir(advisors, {from: tokenOwner});
-            // await second.addHeir(advisors, {from: investOwner});
             await token.sendTokens([second.address], [secondStageBalance], {from: tokenOwner});
             await second.setToken(token.address, {from: investOwner});
         });
@@ -196,7 +191,6 @@ contract('StageSecond', function (accounts) {
             } catch (error) {assert(error.message.includes("Not invested"));}
 
             await increaseTime(duration);
-            // await second.validate({from: investOwner});
             await second.close({from: investOwner});
         });
     });
