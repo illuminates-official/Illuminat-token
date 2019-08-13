@@ -26,7 +26,7 @@ contract Token is ERC20Burnable, Ownable {
     uint private deployTime;
     uint private freezingTime = 2 * 365 days;
 
-    event PayService(string _service, uint toDeposite);
+    event PayService(string indexed _service, uint indexed toDeposite);
 
     constructor(address a, address b, address t) public {
         deployTime = now;
