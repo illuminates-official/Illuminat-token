@@ -32,7 +32,7 @@ contract Bounty is Ownable {
     }
 
     function addAirdropAccounts(address[] memory _account, uint[] memory _balance) public onlyOwner {
-        require(_account.length == _balance.length);
+        require(_account.length == _balance.length, "The length of the arrays must be equal");
 
         for (uint i = 0; i < _account.length; i++) {
             _addAirdropAccount(_account[i], _balance[i]);
@@ -40,6 +40,7 @@ contract Bounty is Ownable {
     }
 
     function receiveTokens() public {
+        require(!airdropReceived[msg.sender], "Airdrop tokens already received");
         uint amount = airdropBalances[msg.sender];
         airdropBalances[msg.sender] = 0;
         airdropReceived[msg.sender] = true;
@@ -56,9 +57,9 @@ contract Bounty is Ownable {
     }
 
     function _addAirdropAccount(address _account, uint _amount) private {
-        require(_account != address(0));
-        require(airdropBalances[_account] == 0);
-        require(!airdropReceived[_account]);
+        require(_account != address(0), "Account is zero address");
+        require(airdropBalances[_account] == 0, "Airdrop balance already set");
+        require(!airdropReceived[_account], "Airdrop tokens already received");
         airdropBalances[_account] = _amount;
     }
 
