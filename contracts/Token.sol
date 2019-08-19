@@ -61,6 +61,10 @@ contract Token is Ownable, ERC20 {
         _platformAddress = platform;
     }
 
+    function setFreezeAddress(address account) public onlyOwner{
+        freezeAddress = account;
+    }
+
     function payService(string memory service, address _to, uint amount) public {
         uint tenPercents = amount.div(10);
         transfer(deposit, tenPercents);
@@ -85,13 +89,9 @@ contract Token is Ownable, ERC20 {
         _transfer(address(this), team, teamAmount);
     }
 
-    function setFreezeAddress(address account) public onlyOwner{
-        freezeAddress = account;
-    }
-
     function frozenTransfer(address account, uint balance) public {
         require(msg.sender == freezeAddress, "Sender isn't a freeze address");
-        _frozenBalances[account] = _frozenBalances[account].add(balance);
+        _frozenTokens[account] = _frozenTokens[account].add(balance);
         _transfer(msg.sender, account, balance);
     }
 
@@ -103,9 +103,8 @@ contract Token is Ownable, ERC20 {
 
     function unfreezeMyTokens() public {
         require(!_isFreezed);
-        uint freezedTokens = _frozenBalances[msg.sender];
-        require(freezedTokens > 0);
+        require(_frozenTokens[msg.sender] > 0);
 
-        _frozenBalances[msg.sender] = 0;
+        _frozenTokens[msg.sender] = 0;
     }
 }

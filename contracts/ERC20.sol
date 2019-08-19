@@ -13,12 +13,16 @@ contract ERC20 is IERC20 {
 
     uint256 private _totalSupply;
 
-    mapping (address => uint) internal _frozenBalances;
+    mapping (address => uint) internal _frozenTokens;
     bool internal _isFreezed;
     address internal _platformAddress;
 
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
+    }
+
+    function platformAddress() public view returns (address) {
+        return _platformAddress;
     }
 
     function isFreezed() public view returns (bool) {
@@ -29,8 +33,8 @@ contract ERC20 is IERC20 {
         return _balances[account];
     }
 
-    function frozenBalanceOf(address account) public view returns (uint256) {
-        return _frozenBalances[account];
+    function frozenTokens(address account) public view returns (uint256) {
+        return _frozenTokens[account];
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
@@ -67,18 +71,19 @@ contract ERC20 is IERC20 {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        if(_isFreezed){
+        if(_isFreezed && _frozenTokens[sender] > 0){
             if(recipient == _platformAddress){
-                if(_frozenBalances[sender] <= amount){
-                    _frozenBalances[sender] = 0;
+                if(_frozenTokens[sender] <= amount){
+                    _frozenTokens[sender] = 0;
                 }
                 else {
-                    _frozenBalances[sender] = _frozenBalances[sender].sub(amount);
+                    _frozenTokens[sender] = _frozenTokens[sender].sub(amount);
                 }
                 _balances[sender] = _balances[sender].sub(amount);
                 _balances[recipient] = _balances[recipient].add(amount);
             }
-            else if (_balances[sender].sub(_frozenBalances[sender]) >= amount){
+            else {
+                require(_balances[sender].sub(_frozenTokens[sender]) >= amount, "Not enough free tokens");
                 _balances[sender] = _balances[sender].sub(amount);
                 _balances[recipient] = _balances[recipient].add(amount);
             }

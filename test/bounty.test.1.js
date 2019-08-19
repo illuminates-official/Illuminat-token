@@ -67,6 +67,7 @@ contract('Bounty', function (accounts) {
             bounty = await BountyContract.new({from: bountyOwner});
             token = await TokenContract.new(advisors, bounty.address, team, {from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
+            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
         });
 
         it('transfer', async function () {
@@ -125,6 +126,7 @@ contract('Bounty', function (accounts) {
             bounty = await BountyContract.new({from: bountyOwner});
             token = await TokenContract.new(advisors, bounty.address, team, {from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
+            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
         });
 
         it('add airdrop accounts (different length of arrays)', async function () {
