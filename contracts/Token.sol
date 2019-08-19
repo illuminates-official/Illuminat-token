@@ -1,10 +1,10 @@
 pragma solidity ^0.5.10;
 
-import "./ERC20Burnable.sol";
+import "./ERC20.sol";
 import "./Ownable.sol";
 import "./SafeMath.sol";
 
-contract Token is ERC20Burnable, Ownable {
+contract Token is Ownable, ERC20 {
 
     using SafeMath for uint;
 
@@ -26,7 +26,10 @@ contract Token is ERC20Burnable, Ownable {
     uint private deployTime;
     uint private freezingTime = 2 * 365 days;
 
-    event PayService(string _service, uint toDeposite);
+    bool public freezed;
+    address public freezeAddress;
+
+    event PayService(string indexed _service, uint indexed toDeposite);
 
     constructor(address a, address b, address t) public {
         deployTime = now;
@@ -38,6 +41,8 @@ contract Token is ERC20Burnable, Ownable {
         advisors = a;
         bounty = b;
         team = t;
+
+        _isFreezed = true;
 
         _mint(address(this), 100000000 * 10 ** decimals);
         _transfer(address(this), advisors, advisorsAmount);
@@ -52,10 +57,18 @@ contract Token is ERC20Burnable, Ownable {
         deposit = _deposit;
     }
 
+    function setPlatformAddress(address platform) public onlyOwner {
+        _platformAddress = platform;
+    }
+
+    function setFreezeAddress(address account) public onlyOwner{
+        freezeAddress = account;
+    }
+
     function payService(string memory service, address _to, uint amount) public {
         uint tenPercents = amount.div(10);
         transfer(deposit, tenPercents);
-        burn(tenPercents);
+        _burn(msg.sender, tenPercents);
         transfer(_to, amount.sub(tenPercents.mul(2)));
 
         emit PayService(service, tenPercents);
@@ -74,5 +87,24 @@ contract Token is ERC20Burnable, Ownable {
         require(!isTeamPaid, "Already paid");
         isTeamPaid = true;
         _transfer(address(this), team, teamAmount);
+    }
+
+    function frozenTransfer(address account, uint balance) public {
+        require(msg.sender == freezeAddress, "Sender isn't a freeze address");
+        _frozenTokens[account] = _frozenTokens[account].add(balance);
+        _transfer(msg.sender, account, balance);
+    }
+
+    function unfreeze() public onlyOwner {
+        require(_isFreezed);
+
+        _isFreezed = false;
+    }
+
+    function unfreezeMyTokens() public {
+        require(!_isFreezed);
+        require(_frozenTokens[msg.sender] > 0);
+
+        _frozenTokens[msg.sender] = 0;
     }
 }

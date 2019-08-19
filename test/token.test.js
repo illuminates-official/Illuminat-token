@@ -126,7 +126,7 @@ contract('Token', function (accounts) {
             balc1 = await web3.eth.getBalance(token.address);
             try {
                 await web3.eth.sendTransaction({from: accounts[9], to: token.address, gas: 150000, value: 1 * decimals});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("revert"));}
 
             bal2 = await web3.eth.getBalance(accounts[9]);
@@ -148,7 +148,7 @@ contract('Token', function (accounts) {
         it('team check', async function () {
             try {
                 await token.getTeamTokens();
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("2 years have not expired"));}
             assert.equal(+(await token.balanceOf(team)), 0);
 
@@ -158,7 +158,7 @@ contract('Token', function (accounts) {
 
             try {
                 await token.getTeamTokens();
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Already paid"));}
             assert.equal(+(await token.balanceOf(team)), tb);
         });
@@ -166,7 +166,7 @@ contract('Token', function (accounts) {
         it('service check (deposit address is zero)', async function () {
             try {
                 await token.payService("test", auctionOwner, vs(100), {from: bounty});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
             assert.equal(+(await token.balanceOf(deposite)), 0);
             assert.equal(+(await token.balanceOf(bounty)), vs(2000000));
@@ -185,7 +185,7 @@ contract('Token', function (accounts) {
         it('try to set deposite address not by owner', async function () {
             try {
                 await token.setDepositeAddress(deposite, {from: auctionOwner});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
         });
         
@@ -194,7 +194,7 @@ contract('Token', function (accounts) {
 
             try {
                 await token.getTeamTokens({from: auctionOwner});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
             assert.equal(+(await token.balanceOf(team)), 0);
         });
@@ -221,7 +221,7 @@ contract('Token', function (accounts) {
 
             try {
                 await token.sendTokens(recievers, amounts, {from: tokenOwner});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("The length of the arrays must be equal"));}
             assert.equal(+(await token.balanceOf(accounts[8])), 0);
 
@@ -230,7 +230,7 @@ contract('Token', function (accounts) {
 
             try {
                 await token.sendTokens(recievers, amounts, {from: tokenOwner});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("The length of the arrays must be equal"));}
             assert.equal(+(await token.balanceOf(accounts[8])), 0);
 
@@ -244,7 +244,7 @@ contract('Token', function (accounts) {
 
             try {
                 await token.sendTokens(recievers, amounts, {from: tokenOwner});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
             assert.equal(+(await token.balanceOf(accounts[8])), 0);
             assert.equal(+(await token.balanceOf(accounts[9])), 0);
@@ -257,7 +257,7 @@ contract('Token', function (accounts) {
 
             try {
                 await token.sendTokens(recievers, amounts, {from: sale});
-                console.log("fail.\n Exception must be thrown before");
+                throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
             assert.equal(+(await token.balanceOf(accounts[8])), 0);
             assert.equal(+(await token.balanceOf(accounts[9])), 0);
