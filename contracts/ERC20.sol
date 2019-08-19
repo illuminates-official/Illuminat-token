@@ -13,12 +13,24 @@ contract ERC20 is IERC20 {
 
     uint256 private _totalSupply;
 
+    mapping (address => uint) internal _frozenBalances;
+    bool internal _isFreezed;
+    address internal _platformAddress;
+
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
     }
 
+    function isFreezed() public view returns (bool) {
+        return _isFreezed;
+    }
+
     function balanceOf(address account) public view returns (uint256) {
         return _balances[account];
+    }
+
+    function frozenBalanceOf(address account) public view returns (uint256) {
+        return _frozenBalances[account];
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
@@ -55,8 +67,27 @@ contract ERC20 is IERC20 {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        _balances[sender] = _balances[sender].sub(amount);
-        _balances[recipient] = _balances[recipient].add(amount);
+        if(_isFreezed){
+            if(recipient == _platformAddress){
+                if(_frozenBalances[sender] <= amount){
+                    _frozenBalances[sender] = 0;
+                }
+                else {
+                    _frozenBalances[sender] = _frozenBalances[sender].sub(amount);
+                }
+                _balances[sender] = _balances[sender].sub(amount);
+                _balances[recipient] = _balances[recipient].add(amount);
+            }
+            else if (_balances[sender].sub(_frozenBalances[sender]) >= amount){
+                _balances[sender] = _balances[sender].sub(amount);
+                _balances[recipient] = _balances[recipient].add(amount);
+            }
+        }
+        else{
+            _balances[sender] = _balances[sender].sub(amount);
+            _balances[recipient] = _balances[recipient].add(amount);
+        }
+
         emit Transfer(sender, recipient, amount);
     }
 

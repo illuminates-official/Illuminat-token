@@ -14,6 +14,7 @@ contract Bounty is Ownable {
     mapping (address => bool) public airdropReceived;
 
     event AirdropTokensReceiving(address indexed _account, uint indexed _amount);
+    event AirdropAccountAdded(address indexed _account, uint indexed _amount);
 
     constructor() public {
 
@@ -44,7 +45,7 @@ contract Bounty is Ownable {
         uint amount = airdropBalances[msg.sender];
         airdropBalances[msg.sender] = 0;
         airdropReceived[msg.sender] = true;
-        _transfer(msg.sender, amount);
+        token.frozenTransfer(msg.sender, amount);
         emit AirdropTokensReceiving(msg.sender, amount);
     }
 
@@ -61,6 +62,8 @@ contract Bounty is Ownable {
         require(airdropBalances[_account] == 0, "Airdrop balance already set");
         require(!airdropReceived[_account], "Airdrop tokens already received");
         airdropBalances[_account] = _amount;
+
+        emit AirdropAccountAdded(_account, _amount);
     }
 
 }
