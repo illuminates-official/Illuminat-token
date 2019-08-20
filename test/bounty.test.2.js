@@ -68,7 +68,6 @@ contract('Token', function (accounts) {
             bounty = await BountyContract.new({from: bountyOwner});
             token = await TokenContract.new({from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
-            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
             await token.setPlatformAddress(platform, {from: tokenOwner});
             await token.setBountyAddress(bounty.address, {from: tokenOwner});
             await token.getBountyTokens({from: tokenOwner});
@@ -224,7 +223,6 @@ contract('Bounty', function (accounts) {
             bounty = await BountyContract.new({from: bountyOwner});
             token = await TokenContract.new({from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
-            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
             await token.setBountyAddress(bounty.address, {from: tokenOwner});
             await token.getBountyTokens({from: tokenOwner});
         });

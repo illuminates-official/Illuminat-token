@@ -28,7 +28,6 @@ contract Token is Ownable, ERC20 {
     uint private deployTime;
     uint private freezingTime = 2 * 365 days;
 
-    bool public freezed;
     address public freezeAddress;
 
     event PayService(string indexed _service, uint indexed toDeposite);
@@ -67,6 +66,7 @@ contract Token is Ownable, ERC20 {
 
     function setBountyAddress(address account) public onlyOwner{
         bounty = account;
+        setFreezeAddress(account);
     }
 
     function setAdvisorsAddress(address account) public onlyOwner{

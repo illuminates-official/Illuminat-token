@@ -11,7 +11,7 @@ contract StageFirst is Ownable {
     IERC20 public token;
     address payable public receiver;
 
-    uint constant firstDuration = 13 days;
+    uint constant firstDuration = 1567296000;
     uint constant secondDuration = 14 days;
     uint private deployTime;
     uint private initTokens;
@@ -38,17 +38,17 @@ contract StageFirst is Ownable {
     }
 
     modifier fundraisingTimeOut() {
-        require(now >= deployTime.add(firstDuration), "Investing are still ongoing");
+        require(now >= firstDuration, "Investing are still ongoing");
         _;
     }
 
     modifier timeOut() {
-        require(now >= deployTime.add(firstDuration.add(secondDuration)), "Investing are still ongoing");
+        require(now >= firstDuration.add(secondDuration), "Investing are still ongoing");
         _;
     }
 
     modifier inTime() {
-        require(now < deployTime.add(firstDuration.add(secondDuration)), "Investing time is up");
+        require(now < firstDuration.add(secondDuration), "Investing time is up");
         _;
     }
 
@@ -92,7 +92,7 @@ contract StageFirst is Ownable {
             sendTokens();
             receiveEther();
         }
-        else if(now < deployTime.add(firstDuration.add(secondDuration))) {
+        else if(now < firstDuration.add(secondDuration)) {
             revert("Investing are still ongoing");
         }
         else {

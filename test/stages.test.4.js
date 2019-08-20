@@ -52,7 +52,7 @@ contract('StageFirst', function (accounts) {
 
     let firstStageBalance = vs(675000);
 
-    let fduration = 13*day;
+    let fduration = 12*day;
     let sduration = 14*day;
 
     let bal1, bal2, balc1, balc2;

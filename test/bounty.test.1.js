@@ -67,7 +67,6 @@ contract('Bounty', function (accounts) {
             bounty = await BountyContract.new({from: bountyOwner});
             token = await TokenContract.new({from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
-            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
             await token.setBountyAddress(bounty.address, {from: tokenOwner});
             await token.getBountyTokens({from: tokenOwner});
         });
@@ -128,7 +127,8 @@ contract('Bounty', function (accounts) {
             bounty = await BountyContract.new({from: bountyOwner});
             token = await TokenContract.new({from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
-            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
+            await token.setBountyAddress(bounty.address, {from: tokenOwner});
+            await token.getBountyTokens({from: tokenOwner});
         });
 
         it('add airdrop accounts (different length of arrays)', async function () {
@@ -217,7 +217,7 @@ contract('Bounty', function (accounts) {
             assert.equal(+(await bounty.airdropBalances(accounts[4])), vs(25));
             assert.equal(await bounty.airdropReceived(accounts[4]), false);
 
-            // await bounty.receiveTokens({from: accounts[4]});
+            await bounty.receiveTokens({from: accounts[4]});
 
             // assert.equal(+(await token.balanceOf(accounts[4])), vs(25));
             // assert.equal(await bounty.airdropReceived(accounts[4]), true);

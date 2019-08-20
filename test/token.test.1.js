@@ -118,6 +118,7 @@ contract('Token', function (accounts) {
         it('team check', async function () {
             await increaseTime(2 * 365*day);
 
+            await token.setTeamAddress(team, {from: tokenOwner});
             await token.getTeamTokens();
 
             assert.equal(+(await token.balanceOf(team)), vs(15000000));
@@ -126,6 +127,8 @@ contract('Token', function (accounts) {
         it('service pay', async function () {
             await token.setDepositeAddress(deposite, {from: tokenOwner});
             assert.equal(+(await token.balanceOf(deposite)), 0);
+
+            await token.sendTokens([bounty], [vs(3000)], {from: tokenOwner});
 
             await token.payService("test", auctionOwner, vs(100), {from: bounty});
             assert.equal(+(await token.balanceOf(deposite)), vs(10));
@@ -163,6 +166,8 @@ contract('Token', function (accounts) {
         });
 
         it('team check', async function () {
+            await token.setTeamAddress(team, {from: tokenOwner});
+
             try {
                 await token.getTeamTokens();
                 throw "Fail!\n Exception must be thrown before";
@@ -181,6 +186,8 @@ contract('Token', function (accounts) {
         });
 
         it('service check (deposit address is zero)', async function () {
+            await token.sendTokens([bounty], [vs(2000000)], {from: tokenOwner});
+
             try {
                 await token.payService("test", auctionOwner, vs(100), {from: bounty});
                 throw "Fail!\n Exception must be thrown before";
