@@ -64,7 +64,7 @@ contract('Token', function (accounts) {
 
     describe('Token information', async () => {
         it('token init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
         });                
         it('LUM name', async function () {
             assert.equal(await token.name(), "Illuminat token");
@@ -82,12 +82,29 @@ contract('Token', function (accounts) {
             assert.equal(await token.owner(), tokenOwner);
         });
         it('advisors check', async function () {
-            assert.equal(+(await token.balanceOf(advisors)), ab);
+            assert.equal(await token.advisors(), zeroAddress);
+
+            await token.setAdvisorsAddress(advisors, {from: tokenOwner});
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+
+            await token.getAdvisorsTokens({from:tokenOwner});
+            assert.equal(+(await token.balanceOf(advisors)), vs(1000000));
         });
+
         it('bounty check', async function () {
-            assert.equal(+(await token.balanceOf(bounty)), bb);
+            assert.equal(await token.bounty(), zeroAddress);
+
+            await token.setBountyAddress(bounty, {from: tokenOwner});
+            assert.equal(+(await token.balanceOf(bounty)), 0);
+
+            await token.getBountyTokens({from:tokenOwner});
+            assert.equal(+(await token.balanceOf(bounty)), vs(2000000));
         });
+
         it('team check', async function () {
+            assert.equal(await token.team(), zeroAddress);
+
+            await token.setTeamAddress(team, {from: tokenOwner});
             assert.equal(+(await token.balanceOf(team)), 0);
         });
     });
@@ -95,7 +112,7 @@ contract('Token', function (accounts) {
 
     describe('Token functionality', async () => {
         beforeEach('init', async function () {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
         });
 
         it('team check', async function () {
@@ -103,7 +120,7 @@ contract('Token', function (accounts) {
 
             await token.getTeamTokens();
 
-            assert.equal(+(await token.balanceOf(team)), tb);
+            assert.equal(+(await token.balanceOf(team)), vs(15000000));
         });
 
         it('service pay', async function () {
@@ -142,7 +159,7 @@ contract('Token', function (accounts) {
 
     describe('Requirement check', async () => {
         beforeEach('init', async function () {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
         });
 
         it('team check', async function () {
@@ -204,7 +221,7 @@ contract('Token', function (accounts) {
     describe('Sending tokens', async () => {
 
         beforeEach('init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
         });
 
         it('send tokens', async () => {
@@ -212,7 +229,7 @@ contract('Token', function (accounts) {
 
             assert.equal(+(await token.balanceOf(accounts[8])), amounts[0]);
             assert.equal(+(await token.balanceOf(accounts[9])), amounts[1]);
-            assert.equal(+(await token.balanceOf(token.address)), +vs(97000000 - 350));
+            assert.equal(+(await token.balanceOf(token.address)), +vs(100000000 - 350));
         });
 
         it('sending tokens (different length)', async () => {
@@ -248,7 +265,7 @@ contract('Token', function (accounts) {
             } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
             assert.equal(+(await token.balanceOf(accounts[8])), 0);
             assert.equal(+(await token.balanceOf(accounts[9])), 0);
-            assert.equal(+(await token.balanceOf(token.address)), +vs(97000000));
+            assert.equal(+(await token.balanceOf(token.address)), +vs(100000000));
         });
 
         it('sending tokens (not by owner)', async () => {
@@ -261,7 +278,7 @@ contract('Token', function (accounts) {
             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
             assert.equal(+(await token.balanceOf(accounts[8])), 0);
             assert.equal(+(await token.balanceOf(accounts[9])), 0);
-            assert.equal(+(await token.balanceOf(token.address)), +vs(97000000));
+            assert.equal(+(await token.balanceOf(token.address)), +vs(100000000));
         });
     });  
  });

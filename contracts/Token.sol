@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity ^0.5.11;
 
 import "./ERC20.sol";
 import "./Ownable.sol";
@@ -12,17 +12,19 @@ contract Token is Ownable, ERC20 {
     string public constant symbol = "LUM";
     uint public constant decimals = 18;
 
-    address private advisors;
+    address public advisors;
     uint private advisorsAmount;
+    bool private isAdvisorsPaid;
 
-    address private bounty;
+    address public bounty;
     uint private bountyAmount;
+    bool private isBountyPaid;
 
-    address private team;
+    address public team;
     uint private teamAmount;
     bool private isTeamPaid;
 
-    address private deposit;
+    address public deposit;
     uint private deployTime;
     uint private freezingTime = 2 * 365 days;
 
@@ -31,22 +33,16 @@ contract Token is Ownable, ERC20 {
 
     event PayService(string indexed _service, uint indexed toDeposite);
 
-    constructor(address a, address b, address t) public {
+    constructor() public {
         deployTime = now;
 
         advisorsAmount = 1000000 * 10 ** decimals;
         bountyAmount = 2000000 * 10 ** decimals;
         teamAmount = 15000000 * 10 ** decimals;
 
-        advisors = a;
-        bounty = b;
-        team = t;
-
         _isFreezed = true;
 
         _mint(address(this), 100000000 * 10 ** decimals);
-        _transfer(address(this), advisors, advisorsAmount);
-        _transfer(address(this), bounty, bountyAmount);
     }
 
     function() external {
@@ -63,6 +59,18 @@ contract Token is Ownable, ERC20 {
 
     function setFreezeAddress(address account) public onlyOwner{
         freezeAddress = account;
+    }
+
+    function setTeamAddress(address account) public onlyOwner{
+        team = account;
+    }
+
+    function setBountyAddress(address account) public onlyOwner{
+        bounty = account;
+    }
+
+    function setAdvisorsAddress(address account) public onlyOwner{
+        advisors = account;
     }
 
     function payService(string memory service, address _to, uint amount) public {
@@ -87,6 +95,18 @@ contract Token is Ownable, ERC20 {
         require(!isTeamPaid, "Already paid");
         isTeamPaid = true;
         _transfer(address(this), team, teamAmount);
+    }
+
+    function getAdvisorsTokens() public onlyOwner {
+        require(!isAdvisorsPaid, "Already paid");
+        isAdvisorsPaid = true;
+        _transfer(address(this), advisors, advisorsAmount);
+    }
+
+    function getBountyTokens() public onlyOwner {
+        require(!isBountyPaid, "Already paid");
+        isBountyPaid = true;
+        _transfer(address(this), bounty, bountyAmount);
     }
 
     function frozenTransfer(address account, uint balance) public {

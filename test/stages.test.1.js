@@ -59,7 +59,7 @@ contract('StageFirst', function (accounts) {
 
     describe('Invest functionality', async () => {
         beforeEach('init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
@@ -116,7 +116,7 @@ contract('StageFirst', function (accounts) {
 
     describe('Requirements and restrictions', async () => {
         beforeEach('init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             first = await StageFirstContract.new({from: investOwner});
             await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
             await first.setToken(token.address, {from: investOwner});
@@ -148,7 +148,7 @@ contract('StageFirst', function (accounts) {
             await first.close({from: investOwner});
 
             assert.equal(+(await token.balanceOf(first.address)), 0);
-            assert.equal(+(await token.balanceOf(token.address)), vs(97000000));
+            assert.equal(+(await token.balanceOf(token.address)), vs(100000000));
             bal2 = await web3.eth.getBalance(accounts[4]);
             balc2 = await web3.eth.getBalance(first.address);
 
