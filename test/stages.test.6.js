@@ -55,7 +55,7 @@ contract('StageSecond', function (accounts) {
 
     describe('Requirements and restrictions', async () => {
         beforeEach('init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             second = await StageSecondContract.new({from: investOwner});
             await token.sendTokens([second.address], [secondStageBalance], {from: tokenOwner});
             await second.setToken(token.address, {from: investOwner});

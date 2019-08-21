@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity ^0.5.11;
 
 import "./IERC20.sol";
 import "./SafeMath.sol";
@@ -11,7 +11,7 @@ contract StageFirst is Ownable {
     IERC20 public token;
     address payable public receiver;
 
-    uint constant firstDuration = 13 days;
+    uint constant firstDuration = 12 days;
     uint constant secondDuration = 14 days;
     uint private deployTime;
     uint private initTokens;

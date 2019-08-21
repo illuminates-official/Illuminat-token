@@ -58,7 +58,7 @@ contract('StageThird', function (accounts) {
 
     describe('Manual receiving tokens', async () => {
         beforeEach('init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             third = await StageThirdContract.new({from: investOwner});
             await token.sendTokens([third.address], [thirdStageBalance], {from: tokenOwner});
             await third.setToken(token.address, {from: investOwner});
@@ -140,7 +140,7 @@ contract('StageThird', function (accounts) {
 
     describe('Requirements and restrictions', async () => {
         beforeEach('init', async () => {
-            token = await TokenContract.new(advisors, bounty, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             third = await StageThirdContract.new({from: investOwner});
             await token.sendTokens([third.address], [thirdStageBalance], {from: tokenOwner});
             await third.setToken(token.address, {from: investOwner});

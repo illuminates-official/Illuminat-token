@@ -66,10 +66,11 @@ contract('Token', function (accounts) {
     describe('Frozen tokens', async () => {
         beforeEach('init', async function () {
             bounty = await BountyContract.new({from: bountyOwner});
-            token = await TokenContract.new(advisors, bounty.address, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
-            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
             await token.setPlatformAddress(platform, {from: tokenOwner});
+            await token.setBountyAddress(bounty.address, {from: tokenOwner});
+            await token.getBountyTokens({from: tokenOwner});
         });
 
         it('setting platform address (not by owner)', async function () {
@@ -220,13 +221,15 @@ contract('Bounty', function (accounts) {
     describe('Frozen tokens', async () => {
         beforeEach('init', async function () {
             bounty = await BountyContract.new({from: bountyOwner});
-            token = await TokenContract.new(advisors, bounty.address, team, {from: tokenOwner});
+            token = await TokenContract.new({from: tokenOwner});
             await bounty.setToken(token.address, {from: bountyOwner});
-            await token.setFreezeAddress(bounty.address, {from: tokenOwner});
-            await token.setPlatformAddress(platform, {from: tokenOwner});
+            await token.setBountyAddress(bounty.address, {from: tokenOwner});
+            await token.getBountyTokens({from: tokenOwner});
         });
 
         it('airdrop script', async function () {
+            await token.setPlatformAddress(platform, {from: tokenOwner});
+
             await bounty.addAirdropAccounts(accs, amounts, {from: bountyOwner});
 
             await bounty.receiveTokens({from: accs[0]});
@@ -286,6 +289,27 @@ contract('Bounty', function (accounts) {
             assert.equal(+(await token.balanceOf(accs[1])), vs(21));
             assert.equal(+(await token.frozenTokens(accs[1])), 0);
             assert.equal(await token.isFreezed(), false);
+        });
+
+        it('transfer frozen tokens (zero platform address)', async function () {
+            await bounty.addAirdropAccounts(accs, amounts, {from: bountyOwner});
+            await bounty.receiveTokens({from: accs[0]});
+
+            assert.equal(+(await token.balanceOf(accs[0])), vs(25));
+            assert.equal(+(await token.frozenTokens(accs[0])), vs(25));
+            assert.equal(await bounty.airdropReceived(accs[0]), true);
+
+            platform = await token.platformAddress();
+
+            try {
+                await token.transfer(platform, vs(1), {from: accs[0]});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
+            assert.equal(+(await token.balanceOf(accs[0])), vs(25));
+            assert.equal(+(await token.frozenTokens(accs[0])), vs(25));
+            assert.equal(await bounty.airdropReceived(accs[0]), true);
+
+            platform = accounts[4];
         });
     });
 });
