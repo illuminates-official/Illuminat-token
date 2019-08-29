@@ -11,13 +11,14 @@ contract StageFirst is Ownable {
     IERC20 public token;
     address payable public receiver;
 
-    uint constant firstDuration = 12 days;
+    uint constant firstDuration = 3 days;
     uint constant secondDuration = 14 days;
     uint private deployTime;
     uint private initTokens;
     uint private currentBalance;
 
     mapping (address => uint) public investments;
+    mapping (address => address) public refererOf;
     address payable[] public investors;
     uint public totalInvested;
     uint private currentInvested;
@@ -70,6 +71,14 @@ contract StageFirst is Ownable {
     function invest() private inTime capNotReached {
         require(msg.value > 0, "Value must be greater than 0");
         uint value;
+        uint len = msg.data.length;
+        if (len > 0) {
+            require(len == 20, "Data not an address");
+            address referer = bytesToAddress(msg.data);
+            require(investments[referer] > 0, "Referer not an investor");
+            require(referer != msg.sender, "Not resolved to be referer for self");
+            refererOf[msg.sender] = referer;
+        }
         if(totalInvested + msg.value > totalCap) {
             value = totalCap.sub(totalInvested);
             msg.sender.transfer(msg.value.sub(value));
@@ -99,6 +108,10 @@ contract StageFirst is Ownable {
             returnTokens();
             returnEther();
         }
+    }
+
+    function transfer(address to, uint amount) public onlyOwner {
+        _transfer(to, amount);
     }
 
     function sendTokens() private {
@@ -131,5 +144,11 @@ contract StageFirst is Ownable {
 
     function tokensAmount(uint value) public view returns(uint) {
         return currentBalance.mul(value).div(currentCap);
+    }
+
+    function bytesToAddress(bytes memory bys) private pure returns (address addr) {
+        assembly {
+          addr := mload(add(bys,20))
+        }
     }
 }
