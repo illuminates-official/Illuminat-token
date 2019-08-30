@@ -40,7 +40,7 @@ function vs(value){
 }
 
 
-contract('Token\n\n\t2', function (accounts) {
+contract('Token\n\ttoken.2\n', function (accounts) {
 
     let tokenOwner = accounts[0];
     let advisors = accounts[4];
@@ -60,32 +60,11 @@ contract('Token\n\n\t2', function (accounts) {
     let recievers = [accounts[8], accounts[9]];
     let amounts = [vs(120), vs(230)];
 
-    describe('Addresses and balances', async () => {
+    describe('Sending tokens', async () => {
         beforeEach('init', async function () {
             token = await TokenContract.new({from: tokenOwner});
         });
 
-        it('set bounty address', async function () {
-            assert.equal(await token.bounty(), zeroAddress);
-
-            await token.setBountyAddress(bounty, {from: tokenOwner});
-            assert.equal(await token.bounty(), bounty);
-            assert.equal(await token.freezeAddress(), bounty);
-        });
         
-        it('set bounty address (not by owner)', async function () {
-            assert.equal(await token.bounty(), zeroAddress);
-
-            try {
-                await token.setBountyAddress(bounty, {from: advisors});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("revert"));}
-
-            assert.equal(await token.bounty(), zeroAddress);
-            assert.equal(await token.freezeAddress(), zeroAddress);
-        });
-
-
-
     });
 });

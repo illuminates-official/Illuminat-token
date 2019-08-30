@@ -41,7 +41,7 @@ function vs(value){
 }
 
 
-contract('StageSecond\n\n\t3', function (accounts) {
+contract('StageSecond\n\tstages.3\n', function (accounts) {
 
     let tokenOwner = accounts[0];
     let investOwner = accounts[1];

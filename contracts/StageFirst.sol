@@ -87,14 +87,14 @@ contract StageFirst is Ownable {
     }
 
     function close() public onlyOwner fundraisingTimeOut {
-        if (totalInvested < 50 ether){
-            returnEther();
+        if (totalInvested < 50 ether) {
+            if (address(this).balance > 0) returnEther();
         } else {
-            receiveEther();
-            sendTokens();
+            if (address(this).balance > 0) receiveEther();
+            if (balance() > 0) sendTokens();
         }
-        if (now >= deployTime.add(firstDuration.add(secondDuration)) && totalInvested < totalCap) {
-            _transfer(address(token), balance());
+        if (now >= deployTime.add(firstDuration.add(secondDuration))) {
+            if (balance() > 0) _transfer(address(token), balance());
         }
     }
 
@@ -109,9 +109,7 @@ contract StageFirst is Ownable {
     function sendTokens() private {
         int req = -1;
         int len = int(investors.length);
-        if (len > 40){
-            req = len - 40;
-        }
+        if (len > 40) req = len - 40;
         for (int i = len - 1; i > req; i--) {
             _transfer(investors[uint(i)], tokensAmount(investments[investors[uint(i)]]));
             investors.pop();
@@ -121,9 +119,7 @@ contract StageFirst is Ownable {
     function returnEther() private {
         int req = -1;
         int len = int(investors.length);
-        if (len > 40){
-            req = len - 40;
-        }
+        if (len > 40) req = len - 40;
         for (int i = len - 1; i > req; i--) {
             _sendEther(investors[uint(i)], investments[investors[uint(i)]]);
             investors.pop();

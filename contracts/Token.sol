@@ -12,23 +12,14 @@ contract Token is Ownable, ERC20 {
     string public constant symbol = "LUM";
     uint public constant decimals = 18;
 
-    address public advisors;
-    uint private advisorsAmount;
-    bool private isAdvisorsPaid;
-
-    address public bounty;
-    uint private bountyAmount;
-    bool private isBountyPaid;
-
-    address public team;
-    uint private teamAmount;
-    bool private isTeamPaid;
-
-    address public deposit;
-    uint private deployTime;
-    uint private freezingTime = 2 * 365 days;
+    uint public advisorsAmount;
+    uint public bountyAmount;
+    uint public teamAmount;
 
     address public freezeAddress;
+    address public deposit;
+    uint private deployTime;
+    uint private lockTime = 2 * 365 days;
 
     event PayService(string indexed _service, uint indexed toDeposite);
 
@@ -39,8 +30,6 @@ contract Token is Ownable, ERC20 {
         bountyAmount = 2000000 * 10 ** decimals;
         teamAmount = 15000000 * 10 ** decimals;
 
-        _isFreezed = true;
-
         _mint(address(this), 100000000 * 10 ** decimals);
     }
 
@@ -48,7 +37,7 @@ contract Token is Ownable, ERC20 {
         revert();
     }
 
-    function setDepositeAddress(address _deposit) public onlyOwner {
+    function setDepositAddress(address _deposit) public onlyOwner {
         deposit = _deposit;
     }
 
@@ -58,19 +47,6 @@ contract Token is Ownable, ERC20 {
 
     function setFreezeAddress(address account) public onlyOwner{
         freezeAddress = account;
-    }
-
-    function setTeamAddress(address account) public onlyOwner{
-        team = account;
-    }
-
-    function setBountyAddress(address account) public onlyOwner{
-        bounty = account;
-        setFreezeAddress(account);
-    }
-
-    function setAdvisorsAddress(address account) public onlyOwner{
-        advisors = account;
     }
 
     function payService(string memory service, address _to, uint amount) public {
@@ -90,23 +66,34 @@ contract Token is Ownable, ERC20 {
         }
     }
 
-    function getTeamTokens() public onlyOwner {
-        require(now >= deployTime.add(freezingTime), "2 years have not expired");
-        require(!isTeamPaid, "Already paid");
-        isTeamPaid = true;
-        _transfer(address(this), team, teamAmount);
+    function transferTokens(address to, uint amount) public onlyOwner {
+        _transfer(address(this), to, amount);
     }
 
-    function getAdvisorsTokens() public onlyOwner {
-        require(!isAdvisorsPaid, "Already paid");
-        isAdvisorsPaid = true;
-        _transfer(address(this), advisors, advisorsAmount);
+    function sendTeamTokens(address teamAddress, uint amount) public onlyOwner {
+        if(now < deployTime.add(lockTime)){
+            require(teamAmount.sub(10000000*10**decimals) >= amount);
+        } else {
+            require(teamAmount >= amount);
+        }
+        teamAmount = teamAmount.sub(amount);
+        _transfer(address(this), teamAddress, amount);
     }
 
-    function getBountyTokens() public onlyOwner {
-        require(!isBountyPaid, "Already paid");
-        isBountyPaid = true;
-        _transfer(address(this), bounty, bountyAmount);
+    function sendAdvisorsTokens(address advisorsAddress, uint amount) public onlyOwner {
+        if(now < deployTime.add(lockTime)){
+            require(advisorsAmount.sub(650000*10**decimals) >= amount);
+        } else {
+            require(advisorsAmount >= amount);
+        }
+        advisorsAmount = advisorsAmount.sub(amount);
+        _transfer(address(this), advisorsAddress, amount);
+    }
+
+    function sendBountyTokens(address bountyAddress, uint amount) public onlyOwner {
+        require(bountyAmount >= amount);
+        bountyAmount = bountyAmount.sub(amount);
+        _transfer(address(this), bountyAddress, amount);
     }
 
     function frozenTransfer(address account, uint balance) public {
@@ -119,6 +106,12 @@ contract Token is Ownable, ERC20 {
         require(_isFreezed);
 
         _isFreezed = false;
+    }
+
+    function freeze() public onlyOwner {
+        require(!_isFreezed);
+
+        _isFreezed = true;
     }
 
     function unfreezeMyTokens() public {

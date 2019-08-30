@@ -40,7 +40,7 @@ function vs(value){
 }
 
 
-contract('Token\n\n\t1', function (accounts) {
+contract('Token\n\ttoken.1\n', function (accounts) {
 
     let tokenOwner = accounts[0];
     let auctionOwner = accounts[1];
@@ -81,32 +81,6 @@ contract('Token\n\n\t1', function (accounts) {
         it('owner check', async function () {
             assert.equal(await token.owner(), tokenOwner);
         });
-        it('advisors check', async function () {
-            assert.equal(await token.advisors(), zeroAddress);
-
-            await token.setAdvisorsAddress(advisors, {from: tokenOwner});
-            assert.equal(+(await token.balanceOf(advisors)), 0);
-
-            await token.getAdvisorsTokens({from:tokenOwner});
-            assert.equal(+(await token.balanceOf(advisors)), vs(1000000));
-        });
-
-        it('bounty check', async function () {
-            assert.equal(await token.bounty(), zeroAddress);
-
-            await token.setBountyAddress(bounty, {from: tokenOwner});
-            assert.equal(+(await token.balanceOf(bounty)), 0);
-
-            await token.getBountyTokens({from:tokenOwner});
-            assert.equal(+(await token.balanceOf(bounty)), vs(2000000));
-        });
-
-        it('team check', async function () {
-            assert.equal(await token.team(), zeroAddress);
-
-            await token.setTeamAddress(team, {from: tokenOwner});
-            assert.equal(+(await token.balanceOf(team)), 0);
-        });
     });
 
 
@@ -115,17 +89,8 @@ contract('Token\n\n\t1', function (accounts) {
             token = await TokenContract.new({from: tokenOwner});
         });
 
-        it('team check', async function () {
-            await increaseTime(2 * 365*day);
-
-            await token.setTeamAddress(team, {from: tokenOwner});
-            await token.getTeamTokens();
-
-            assert.equal(+(await token.balanceOf(team)), vs(15000000));
-        });
-
         it('service pay', async function () {
-            await token.setDepositeAddress(deposite, {from: tokenOwner});
+            await token.setDepositAddress(deposite, {from: tokenOwner});
             assert.equal(+(await token.balanceOf(deposite)), 0);
 
             await token.sendTokens([bounty], [vs(3000)], {from: tokenOwner});
@@ -165,26 +130,6 @@ contract('Token\n\n\t1', function (accounts) {
             token = await TokenContract.new({from: tokenOwner});
         });
 
-        it('team check', async function () {
-            await token.setTeamAddress(team, {from: tokenOwner});
-
-            try {
-                await token.getTeamTokens();
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("2 years have not expired"));}
-            assert.equal(+(await token.balanceOf(team)), 0);
-
-            await increaseTime(2 * 365*day);
-            await token.getTeamTokens();
-            assert.equal(+(await token.balanceOf(team)), tb);
-
-            try {
-                await token.getTeamTokens();
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Already paid"));}
-            assert.equal(+(await token.balanceOf(team)), tb);
-        });
-
         it('service check (deposit address is zero)', async function () {
             await token.sendTokens([bounty], [vs(2000000)], {from: tokenOwner});
 
@@ -197,7 +142,7 @@ contract('Token\n\n\t1', function (accounts) {
             assert.equal(+(await token.balanceOf(auctionOwner)), 0);
             assert.equal(+(await token.totalSupply()), totalSupply);
 
-            await token.setDepositeAddress(deposite, {from: tokenOwner});
+            await token.setDepositAddress(deposite, {from: tokenOwner});
 
             await token.payService("test", auctionOwner, vs(100), {from: bounty});
             assert.equal(+(await token.balanceOf(deposite)), vs(10));
@@ -208,19 +153,9 @@ contract('Token\n\n\t1', function (accounts) {
         
         it('try to set deposite address not by owner', async function () {
             try {
-                await token.setDepositeAddress(deposite, {from: auctionOwner});
+                await token.setDepositAddress(deposite, {from: auctionOwner});
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
-        });
-        
-        it('try to get team tokens not by owner', async function () {
-            await increaseTime(2 * 365*day);
-
-            try {
-                await token.getTeamTokens({from: auctionOwner});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
-            assert.equal(+(await token.balanceOf(team)), 0);
         });
     });
 
