@@ -41,7 +41,7 @@ function vs(value){
 }
 
 
-contract('Bounty', function (accounts) {
+contract('Bounty\n\n\t1', function (accounts) {
 
     let tokenOwner = accounts[0];
     let bountyOwner = accounts[1];

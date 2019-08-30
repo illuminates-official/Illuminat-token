@@ -40,7 +40,7 @@ function vs(value){
 }
 
 
-contract('Token', function (accounts) {
+contract('Token\n\n\t1', function (accounts) {
 
     let tokenOwner = accounts[0];
     let auctionOwner = accounts[1];

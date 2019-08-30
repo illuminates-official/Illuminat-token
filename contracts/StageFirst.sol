@@ -11,14 +11,13 @@ contract StageFirst is Ownable {
     IERC20 public token;
     address payable public receiver;
 
-    uint constant firstDuration = 3 days;
-    uint constant secondDuration = 14 days;
+    uint constant firstDuration = 15 days;
+    uint constant secondDuration = 15 days;
     uint private deployTime;
     uint private initTokens;
     uint private currentBalance;
 
     mapping (address => uint) public investments;
-    mapping (address => address) public refererOf;
     address payable[] public investors;
     uint public totalInvested;
     uint private currentInvested;
@@ -71,14 +70,6 @@ contract StageFirst is Ownable {
     function invest() private inTime capNotReached {
         require(msg.value > 0, "Value must be greater than 0");
         uint value;
-        uint len = msg.data.length;
-        if (len > 0) {
-            require(len == 20, "Data not an address");
-            address referer = bytesToAddress(msg.data);
-            require(investments[referer] > 0, "Referer not an investor");
-            require(referer != msg.sender, "Not resolved to be referer for self");
-            refererOf[msg.sender] = referer;
-        }
         if(totalInvested + msg.value > totalCap) {
             value = totalCap.sub(totalInvested);
             msg.sender.transfer(msg.value.sub(value));
@@ -106,7 +97,7 @@ contract StageFirst is Ownable {
         }
         else {
             returnTokens();
-            returnEther();
+            receiveEther();
         }
     }
 
@@ -115,8 +106,9 @@ contract StageFirst is Ownable {
     }
 
     function sendTokens() private {
-        for (uint i = 0; i < investors.length; i++) {
-            _transfer(investors[i], tokensAmount(investments[investors[i]]));
+        for (int i = int(investors.length.sub(1)); i > -1; i--) {
+            _transfer(investors[uint(i)], tokensAmount(investments[investors[uint(i)]]));
+            investors.pop();
         }
     }
 
@@ -126,12 +118,6 @@ contract StageFirst is Ownable {
 
     function receiveEther() private {
         _sendEther(receiver, address(this).balance);
-    }
-
-    function returnEther() private {
-        for (uint i = 0; i < investors.length; i++) {
-            _sendEther(investors[i], investments[investors[i]]);
-        }
     }
 
     function _sendEther(address payable _receiver, uint _value) private {
@@ -144,11 +130,5 @@ contract StageFirst is Ownable {
 
     function tokensAmount(uint value) public view returns(uint) {
         return currentBalance.mul(value).div(currentCap);
-    }
-
-    function bytesToAddress(bytes memory bys) private pure returns (address addr) {
-        assembly {
-          addr := mload(add(bys,20))
-        }
     }
 }

@@ -41,7 +41,7 @@ function vs(value){
 }
 
 
-contract('StageFirst', function (accounts) {
+contract('StageFirst\n\n\t4', function (accounts) {
 
     let tokenOwner = accounts[0];
     let investOwner = accounts[1];
@@ -52,8 +52,8 @@ contract('StageFirst', function (accounts) {
 
     let firstStageBalance = vs(675000);
 
-    let fduration = 3*day;
-    let sduration = 14*day;
+    let fduration = 15*day;
+    let sduration = 15*day;
 
     let bal1, bal2, balc1, balc2;
 
