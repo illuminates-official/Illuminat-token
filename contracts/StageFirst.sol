@@ -25,7 +25,6 @@ contract StageFirst is Ownable {
     uint private currentCap;
 
     event Investment(address indexed sender, uint indexed value);
-    event Receive(address indexed receiver, uint indexed amount);
 
     modifier capReached() {
         require(totalInvested == totalCap, "Cap not reached yet");
@@ -68,37 +67,39 @@ contract StageFirst is Ownable {
     }
 
     function invest() private inTime capNotReached {
-        require(msg.value > 0, "Value must be greater than 0");
+        require(msg.value >= 100 finney, "Investment must be equal or greater than 0.1 ether");
         uint value;
         if(totalInvested + msg.value > totalCap) {
             value = totalCap.sub(totalInvested);
             msg.sender.transfer(msg.value.sub(value));
         } else value = msg.value;
 
-        if(investments[msg.sender] <= 0) investors.push(msg.sender);
+        if(investments[msg.sender] <= 0 && now < deployTime.add(firstDuration)) investors.push(msg.sender);
         investments[msg.sender] = investments[msg.sender].add(value);
         totalInvested = totalInvested.add(value);
         currentInvested = currentInvested.add(value);
-
         emit Investment(msg.sender, value);
+
+        if(now > deployTime.add(firstDuration)){
+            _sendEther(receiver, value);
+            _transfer(msg.sender, tokensAmount(value));
+        }
+    }
+
+    function close() public onlyOwner fundraisingTimeOut {
+        if (totalInvested < 50 ether){
+            returnEther();
+        } else {
+            receiveEther();
+            sendTokens();
+        }
+        if (now >= deployTime.add(firstDuration.add(secondDuration)) && totalInvested < totalCap) {
+            _transfer(address(token), balance());
+        }
     }
 
     function setToken(address _token) public onlyOwner {
         token = IERC20(_token);
-    }
-
-    function close() public onlyOwner fundraisingTimeOut {
-        if(totalInvested == totalCap) {
-            sendTokens();
-            receiveEther();
-        }
-        else if(now < deployTime.add(firstDuration.add(secondDuration))) {
-            revert("Investing are still ongoing");
-        }
-        else {
-            returnTokens();
-            receiveEther();
-        }
     }
 
     function transfer(address to, uint amount) public onlyOwner {
@@ -106,14 +107,27 @@ contract StageFirst is Ownable {
     }
 
     function sendTokens() private {
-        for (int i = int(investors.length.sub(1)); i > -1; i--) {
+        int req = -1;
+        int len = int(investors.length);
+        if (len > 40){
+            req = len - 40;
+        }
+        for (int i = len - 1; i > req; i--) {
             _transfer(investors[uint(i)], tokensAmount(investments[investors[uint(i)]]));
             investors.pop();
         }
     }
 
-    function returnTokens() private {
-        _transfer(address(token), currentBalance);
+    function returnEther() private {
+        int req = -1;
+        int len = int(investors.length);
+        if (len > 40){
+            req = len - 40;
+        }
+        for (int i = len - 1; i > req; i--) {
+            _sendEther(investors[uint(i)], investments[investors[uint(i)]]);
+            investors.pop();
+        }
     }
 
     function receiveEther() private {
@@ -126,6 +140,10 @@ contract StageFirst is Ownable {
 
     function _transfer(address to, uint amount) private {
         token.transfer(to, amount);
+    }
+
+    function balance() private view returns(uint){
+        return token.balanceOf(address(this));
     }
 
     function tokensAmount(uint value) public view returns(uint) {

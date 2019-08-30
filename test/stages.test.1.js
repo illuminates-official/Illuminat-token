@@ -66,11 +66,11 @@ contract('StageFirst\n\n\t1', function (accounts) {
         });
 
         it('try to send eth', async () => {
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: 100});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: v(0.1)});
 
-            assert.equal(+(await first.investments(accounts[2])), 100);
+            assert.equal(+(await first.investments(accounts[2])), v(0.1));
             assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(+(await first.totalInvested()), 100);
+            assert.equal(+(await first.totalInvested()), v(0.1));
         });
 
         it('tokens amount', async () => {
@@ -207,7 +207,7 @@ contract('StageFirst\n\n\t1', function (accounts) {
             try {
                 await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: 0});
                 throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Value must be greater than 0"));}
+            } catch (error) {assert(error.message.includes("Investment must be equal or greater than 0.1 ether"));}
 
             bal2 = await web3.eth.getBalance(accounts[2]);
             balc2 = await web3.eth.getBalance(first.address);
