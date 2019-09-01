@@ -68,7 +68,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
         it('investing after first duration', async () => {
             await increaseTime(fduration+1);
 
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: v(0.1)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 180000, value: v(0.1)});
 
             assert.equal(+(await first.investments(accounts[2])), v(0.1));
             assert.equal(+(await first.totalInvested()), v(0.1));
@@ -87,12 +87,12 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             it('returning ether', async () => {
                 balc1 = await web3.eth.getBalance(first.address);
 
-                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 150000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 150000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 150000, value: v(1)});
+                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 180000, value: v(1)});
+                await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 180000, value: v(1)});
+                await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 180000, value: v(1)});
+                await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 180000, value: v(1)});
+                await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 180000, value: v(1)});
+                await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 180000, value: v(1)});
 
                 assert.equal(await first.investors(0), accounts[2]);
                 assert.equal(await first.investors(1), accounts[3]);
@@ -108,15 +108,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
 
                 await first.close({from: investOwner});
 
-                assert.equal(await first.investors(0), accounts[2]);
-                assert.equal(await first.investors(1), accounts[3]);
-
                 balc3 = await web3.eth.getBalance(first.address);
-
-                try {
-                    await first.investors(2);
-                    throw "Fail!\n Exception must be thrown before";
-                } catch (error) {assert(error.message.includes("invalid opcode"));}
 
                 assert.equal(balc1, 0);
                 assert.equal(balc2, vs(6));
@@ -126,23 +118,18 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
 
                 balc3 = await web3.eth.getBalance(first.address);
 
-                try {
-                    await first.investors(0);
-                    throw "Fail!\n Exception must be thrown before";
-                } catch (error) {assert(error.message.includes("invalid opcode"));}
-                
                 assert.equal(balc3, 0);
         });
 
         it('sending tokens', async () => {
             balc1 = await web3.eth.getBalance(first.address);
 
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 150000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 150000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 150000, value: v(25)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 180000, value: v(40)});
+            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 180000, value: v(40)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 180000, value: v(40)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 180000, value: v(40)});
+            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 180000, value: v(40)});
+            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 180000, value: v(25)});
 
             assert.equal(await first.investors(0), accounts[2]);
             assert.equal(await first.investors(1), accounts[3]);
@@ -165,15 +152,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[6])), vs(120000));
             assert.equal(+(await token.balanceOf(accounts[7])), vs(75000));
 
-            assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(await first.investors(1), accounts[3]);
-
             balc3 = await web3.eth.getBalance(first.address);
-
-            try {
-                await first.investors(2);
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("invalid opcode"));}
 
             bal1 = await web3.eth.getBalance(receiver);
 
@@ -192,12 +171,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[6])), vs(120000));
             assert.equal(+(await token.balanceOf(accounts[7])), vs(75000));
 
-            try {
-                await first.investors(0);
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("invalid opcode"));}
-
             assert.equal(balc3, 0);
-    });
+        });
     });
 });
