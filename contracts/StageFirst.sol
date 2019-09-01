@@ -15,25 +15,22 @@ contract StageFirst is Ownable {
     uint constant private secondDuration = 15 days;
     uint private deployTime;
     uint private initTokens;
-    uint private currentBalance;
 
     mapping (address => uint) public investments;
     address payable[] public investors;
     address payable[] private _investors;
-    uint public totalInvested;
-    uint private currentInvested;
-    uint public totalCap;
-    uint private currentCap;
+    uint public invested;
+    uint public cap;
 
     event Investment(address indexed sender, uint indexed value);
 
     modifier capReached() {
-        require(totalInvested == totalCap, "Cap not reached yet");
+        require(invested == cap, "Cap not reached yet");
         _;
     }
 
     modifier capNotReached() {
-        require(totalInvested < totalCap, "Cap already reached");
+        require(invested < cap, "Cap already reached");
         _;
     }
 
@@ -56,11 +53,9 @@ contract StageFirst is Ownable {
         receiver = msg.sender;
         deployTime = now;
 
-        totalCap = 225 ether;
-        currentCap = totalCap;
+        cap = 225 ether;
 
         initTokens = 675000 * 10**18;
-        currentBalance = initTokens;
     }
 
     function() external payable {
@@ -70,8 +65,8 @@ contract StageFirst is Ownable {
     function invest() private inTime capNotReached {
         require(msg.value >= 100 finney, "Investment must be equal or greater than 0.1 ether");
         uint value;
-        if(totalInvested + msg.value > totalCap) {
-            value = totalCap.sub(totalInvested);
+        if(invested.add(msg.value) > cap) {
+            value = cap.sub(invested);
             msg.sender.transfer(msg.value.sub(value));
         } else value = msg.value;
 
@@ -81,8 +76,7 @@ contract StageFirst is Ownable {
         }
 
         investments[msg.sender] = investments[msg.sender].add(value);
-        totalInvested = totalInvested.add(value);
-        currentInvested = currentInvested.add(value);
+        invested = invested.add(value);
         emit Investment(msg.sender, value);
 
         if(now > deployTime.add(firstDuration)){
@@ -92,7 +86,7 @@ contract StageFirst is Ownable {
     }
 
     function close() public onlyOwner fundraisingTimeOut {
-        if (totalInvested < 50 ether) {
+        if (invested < 50 ether) {
             if (address(this).balance > 0) returnEther();
         } else {
             if (address(this).balance > 0) receiveEther();
@@ -148,6 +142,6 @@ contract StageFirst is Ownable {
     }
 
     function tokensAmount(uint value) public view returns(uint) {
-        return currentBalance.mul(value).div(currentCap);
+        return initTokens.mul(value).div(cap);
     }
 }

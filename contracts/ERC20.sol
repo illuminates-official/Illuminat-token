@@ -13,28 +13,12 @@ contract ERC20 is IERC20 {
 
     uint256 private _totalSupply;
 
-    mapping (address => uint) internal _frozenTokens;
-    bool internal _isFreezed;
-    address internal _platformAddress;
-
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
     }
 
-    function platformAddress() public view returns (address) {
-        return _platformAddress;
-    }
-
-    function isFreezed() public view returns (bool) {
-        return _isFreezed;
-    }
-
     function balanceOf(address account) public view returns (uint256) {
         return _balances[account];
-    }
-
-    function frozenTokens(address account) public view returns (uint256) {
-        return _frozenTokens[account];
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
@@ -71,28 +55,8 @@ contract ERC20 is IERC20 {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        if(_isFreezed && _frozenTokens[sender] > 0){
-            if(recipient == _platformAddress){
-                if(_frozenTokens[sender] <= amount){
-                    _frozenTokens[sender] = 0;
-                }
-                else {
-                    _frozenTokens[sender] = _frozenTokens[sender].sub(amount);
-                }
-                _balances[sender] = _balances[sender].sub(amount);
-                _balances[recipient] = _balances[recipient].add(amount);
-            }
-            else {
-                require(_balances[sender].sub(_frozenTokens[sender]) >= amount, "Not enough free tokens");
-                _balances[sender] = _balances[sender].sub(amount);
-                _balances[recipient] = _balances[recipient].add(amount);
-            }
-        }
-        else{
-            _balances[sender] = _balances[sender].sub(amount);
-            _balances[recipient] = _balances[recipient].add(amount);
-        }
-
+        _balances[sender] = _balances[sender].sub(amount);
+        _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
 

@@ -70,7 +70,7 @@ contract('StageFirst\n\tstages.1\n', function (accounts) {
 
             assert.equal(+(await first.investments(accounts[2])), v(0.1));
             assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(+(await first.totalInvested()), v(0.1));
+            assert.equal(+(await first.invested()), v(0.1));
         });
 
         it('tokens amount', async () => {
@@ -96,7 +96,7 @@ contract('StageFirst\n\tstages.1\n', function (accounts) {
 
             await increaseTime(fduration);
 
-            assert.equal(+(await first.totalInvested()), vs(225));
+            assert.equal(+(await first.invested()), vs(225));
 
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
             assert(+(await web3.eth.getBalance(receiver)) < vs(100));

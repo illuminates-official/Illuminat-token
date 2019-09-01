@@ -16,7 +16,6 @@ contract Token is Ownable, ERC20 {
     uint public bountyAmount;
     uint public teamAmount;
 
-    address public freezeAddress;
     address public deposit;
     uint private deployTime;
     uint private lockTime = 2 * 365 days;
@@ -39,14 +38,6 @@ contract Token is Ownable, ERC20 {
 
     function setDepositAddress(address _deposit) public onlyOwner {
         deposit = _deposit;
-    }
-
-    function setPlatformAddress(address platform) public onlyOwner {
-        _platformAddress = platform;
-    }
-
-    function setFreezeAddress(address account) public onlyOwner{
-        freezeAddress = account;
     }
 
     function payService(string memory service, address _to, uint amount) public {
@@ -94,30 +85,5 @@ contract Token is Ownable, ERC20 {
         require(bountyAmount >= amount, "Not enough tokens amount");
         bountyAmount = bountyAmount.sub(amount);
         _transfer(address(this), bountyAddress, amount);
-    }
-
-    function frozenTransfer(address account, uint balance) public {
-        require(msg.sender == freezeAddress, "Sender isn't a freeze address");
-        _frozenTokens[account] = _frozenTokens[account].add(balance);
-        _transfer(msg.sender, account, balance);
-    }
-
-    function unfreeze() public onlyOwner {
-        require(_isFreezed);
-
-        _isFreezed = false;
-    }
-
-    function freeze() public onlyOwner {
-        require(!_isFreezed);
-
-        _isFreezed = true;
-    }
-
-    function unfreezeMyTokens() public {
-        require(!_isFreezed);
-        require(_frozenTokens[msg.sender] > 0);
-
-        _frozenTokens[msg.sender] = 0;
     }
 }

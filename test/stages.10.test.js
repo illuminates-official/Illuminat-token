@@ -71,7 +71,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 180000, value: v(0.1)});
 
             assert.equal(+(await first.investments(accounts[2])), v(0.1));
-            assert.equal(+(await first.totalInvested()), v(0.1));
+            assert.equal(+(await first.invested()), v(0.1));
             assert.equal(+(await token.balanceOf(accounts[2])), vs(300));
         });
     });
@@ -100,7 +100,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
                 assert.equal(await first.investors(3), accounts[5]);
                 assert.equal(await first.investors(4), accounts[6]);
                 assert.equal(await first.investors(5), accounts[7]);
-                assert.equal(+(await first.totalInvested()), v(6));
+                assert.equal(+(await first.invested()), v(6));
 
                 balc2 = await web3.eth.getBalance(first.address);
                 
@@ -137,7 +137,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             assert.equal(await first.investors(3), accounts[5]);
             assert.equal(await first.investors(4), accounts[6]);
             assert.equal(await first.investors(5), accounts[7]);
-            assert.equal(+(await first.totalInvested()), vs(225));
+            assert.equal(+(await first.invested()), vs(225));
 
             balc2 = await web3.eth.getBalance(first.address);
             
