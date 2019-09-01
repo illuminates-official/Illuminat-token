@@ -105,7 +105,7 @@ contract('Token\n\ttoken.1\n', function (accounts) {
             assert.equal(+(await token.balanceOf(auctionOwner)), vs(1680));
             assert.equal(+(await token.totalSupply()), vs(100000000-210));
         });
-        
+
         it('send ether', async () => {
             bal1 = await web3.eth.getBalance(accounts[9]);
             balc1 = await web3.eth.getBalance(token.address);
@@ -150,7 +150,7 @@ contract('Token\n\ttoken.1\n', function (accounts) {
             assert.equal(+(await token.balanceOf(auctionOwner)), vs(80));
             assert.equal(+(await token.totalSupply()), vs(100000000-10));
         });
-        
+
         it('try to set deposite address not by owner', async function () {
             try {
                 await token.setDepositAddress(deposite, {from: auctionOwner});
@@ -159,7 +159,7 @@ contract('Token\n\ttoken.1\n', function (accounts) {
         });
     });
 
-    
+
     describe('Sending tokens', async () => {
 
         beforeEach('init', async () => {

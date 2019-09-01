@@ -65,6 +65,127 @@ contract('Token\n\ttoken.2\n', function (accounts) {
             token = await TokenContract.new({from: tokenOwner});
         });
 
+        it('send team tokens', async () => {
+            assert.equal(+(await token.balanceOf(team)), 0);
+            assert.equal(+(await token.teamAmount()), vs(15000000));
+
+            await token.sendTeamTokens(team, vs(1000000), {from: tokenOwner});
+
+            assert.equal(+(await token.balanceOf(team)), vs(1000000));
+            assert.equal(+(await token.teamAmount()), vs(14000000));
+        });
+
+        it('send advisors tokens', async () => {
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+            assert.equal(+(await token.advisorsAmount()), vs(1000000));
+
+            await token.sendAdvisorsTokens(advisors, vs(100000), {from: tokenOwner});
+
+            assert.equal(+(await token.balanceOf(advisors)), vs(100000));
+            assert.equal(+(await token.advisorsAmount()), vs(900000));
+        });
+
+        it('send bounty tokens', async () => {
+            assert.equal(+(await token.balanceOf(bounty)), 0);
+            assert.equal(+(await token.bountyAmount()), vs(2000000));
+
+            await token.sendBountyTokens(bounty, vs(1000000), {from: tokenOwner});
+
+            assert.equal(+(await token.balanceOf(bounty)), vs(1000000));
+            assert.equal(+(await token.bountyAmount()), vs(1000000));
+        });
+
+        it('send bounty tokens (over amount)', async () => {
+            assert.equal(+(await token.balanceOf(bounty)), 0);
+            assert.equal(+(await token.bountyAmount()), vs(2000000));
+
+            try {
+                await token.sendBountyTokens(bounty, vs(2000001), {from: tokenOwner});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Not enough tokens amount"));}
+
+            assert.equal(+(await token.balanceOf(bounty)), 0);
+            assert.equal(+(await token.bountyAmount()), vs(2000000));
+        });
+
+        it('send team tokens (over locked amount)', async () => {
+            assert.equal(+(await token.balanceOf(team)), 0);
+            assert.equal(+(await token.teamAmount()), vs(15000000));
+
+            try {
+                await token.sendTeamTokens(team, vs(5000001), {from: tokenOwner});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Not enough unlocked tokens amount"));}
+
+            assert.equal(+(await token.balanceOf(team)), 0);
+            assert.equal(+(await token.teamAmount()), vs(15000000));
+        });
         
+        it('send advisors tokens (over locked amount)', async () => {
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+            assert.equal(+(await token.advisorsAmount()), vs(1000000));
+
+            try {
+                await token.sendAdvisorsTokens(advisors, vs(350001), {from: tokenOwner});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Not enough unlocked tokens amount"));}
+
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+            assert.equal(+(await token.advisorsAmount()), vs(1000000));
+        });
+
+        it('send team tokens (over locked amount, after unlocking)', async () => {
+            assert.equal(+(await token.balanceOf(team)), 0);
+            assert.equal(+(await token.teamAmount()), vs(15000000));
+
+            await increaseTime(2*365*day);
+
+            await token.sendTeamTokens(team, vs(5000001), {from: tokenOwner});
+
+            assert.equal(+(await token.balanceOf(team)), vs(5000001));
+            assert.equal(+(await token.teamAmount()), vs(9999999));
+        });
+        
+        it('send advisors tokens (over locked amount, after unlocking)', async () => {
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+            assert.equal(+(await token.advisorsAmount()), vs(1000000));
+
+            await increaseTime(2*365*day);
+
+            await token.sendAdvisorsTokens(advisors, vs(350001), {from: tokenOwner});
+
+            assert.equal(+(await token.balanceOf(advisors)), vs(350001));
+            assert.equal(+(await token.advisorsAmount()), vs(649999));
+        });
+
+        it('send team tokens (over amount)', async () => {
+            assert.equal(+(await token.balanceOf(team)), 0);
+            assert.equal(+(await token.teamAmount()), vs(15000000));
+            
+            await increaseTime(2*365*day);
+
+            try {
+                await token.sendTeamTokens(team, vs(15000001), {from: tokenOwner});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Not enough tokens amount"));}
+
+            assert.equal(+(await token.balanceOf(team)), 0);
+            assert.equal(+(await token.teamAmount()), vs(15000000));
+        });
+        
+        it('send advisors tokens (over amount)', async () => {
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+            assert.equal(+(await token.advisorsAmount()), vs(1000000));
+            
+            await increaseTime(2*365*day);
+
+            try {
+                await token.sendAdvisorsTokens(advisors, vs(1000001), {from: tokenOwner});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Not enough tokens amount"));}
+
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+            assert.equal(+(await token.advisorsAmount()), vs(1000000));
+        });
     });
 });

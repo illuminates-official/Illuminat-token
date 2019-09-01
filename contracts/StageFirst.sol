@@ -93,7 +93,7 @@ contract StageFirst is Ownable {
             if (address(this).balance > 0) receiveEther();
             if (balance() > 0) sendTokens();
         }
-        if (now >= deployTime.add(firstDuration.add(secondDuration))) {
+        if (now >= deployTime.add(firstDuration.add(secondDuration)) && investors.length == 0) {
             if (balance() > 0) _transfer(address(token), balance());
         }
     }
@@ -109,7 +109,7 @@ contract StageFirst is Ownable {
     function sendTokens() private {
         int req = -1;
         int len = int(investors.length);
-        if (len > 40) req = len - 40;
+        if (len > 5) req = len - 5;
         for (int i = len - 1; i > req; i--) {
             _transfer(investors[uint(i)], tokensAmount(investments[investors[uint(i)]]));
             investors.pop();
@@ -119,7 +119,7 @@ contract StageFirst is Ownable {
     function returnEther() private {
         int req = -1;
         int len = int(investors.length);
-        if (len > 40) req = len - 40;
+        if (len > 5) req = len - 5;
         for (int i = len - 1; i > req; i--) {
             _sendEther(investors[uint(i)], investments[investors[uint(i)]]);
             investors.pop();

@@ -72,9 +72,9 @@ contract Token is Ownable, ERC20 {
 
     function sendTeamTokens(address teamAddress, uint amount) public onlyOwner {
         if(now < deployTime.add(lockTime)){
-            require(teamAmount.sub(10000000*10**decimals) >= amount);
+            require(teamAmount.sub(10000000*10**decimals) >= amount, "Not enough unlocked tokens amount");
         } else {
-            require(teamAmount >= amount);
+            require(teamAmount >= amount, "Not enough tokens amount");
         }
         teamAmount = teamAmount.sub(amount);
         _transfer(address(this), teamAddress, amount);
@@ -82,16 +82,16 @@ contract Token is Ownable, ERC20 {
 
     function sendAdvisorsTokens(address advisorsAddress, uint amount) public onlyOwner {
         if(now < deployTime.add(lockTime)){
-            require(advisorsAmount.sub(650000*10**decimals) >= amount);
+            require(advisorsAmount.sub(650000*10**decimals) >= amount, "Not enough unlocked tokens amount");
         } else {
-            require(advisorsAmount >= amount);
+            require(advisorsAmount >= amount, "Not enough tokens amount");
         }
         advisorsAmount = advisorsAmount.sub(amount);
         _transfer(address(this), advisorsAddress, amount);
     }
 
     function sendBountyTokens(address bountyAddress, uint amount) public onlyOwner {
-        require(bountyAmount >= amount);
+        require(bountyAmount >= amount, "Not enough tokens amount");
         bountyAmount = bountyAmount.sub(amount);
         _transfer(address(this), bountyAddress, amount);
     }
