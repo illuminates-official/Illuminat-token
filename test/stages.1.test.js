@@ -41,7 +41,7 @@ function vs(value){
 }
 
 
-contract('StageFirst', function (accounts) {
+contract('StageFirst\n\tstages.1\n', function (accounts) {
 
     let tokenOwner = accounts[0];
     let investOwner = accounts[1];
@@ -52,8 +52,8 @@ contract('StageFirst', function (accounts) {
 
     let firstStageBalance = vs(675000);
 
-    let fduration = 12*day;
-    let sduration = 14*day;
+    let fduration = 15*day;
+    let sduration = 15*day;
 
     let bal1, bal2, balc1, balc2;
 
@@ -66,11 +66,11 @@ contract('StageFirst', function (accounts) {
         });
 
         it('try to send eth', async () => {
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: 100});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: v(0.1)});
 
-            assert.equal(+(await first.investments(accounts[2])), 100);
+            assert.equal(+(await first.investments(accounts[2])), v(0.1));
             assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(+(await first.totalInvested()), 100);
+            assert.equal(+(await first.invested()), v(0.1));
         });
 
         it('tokens amount', async () => {
@@ -89,14 +89,14 @@ contract('StageFirst', function (accounts) {
         it('normal close investing', async () => {
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
 
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: vs(35)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: vs(10)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(35)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 170000, value: vs(10)});
 
             await increaseTime(fduration);
 
-            assert.equal(+(await first.totalInvested()), vs(225));
+            assert.equal(+(await first.invested()), vs(225));
 
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
             assert(+(await web3.eth.getBalance(receiver)) < vs(100));
@@ -141,7 +141,7 @@ contract('StageFirst', function (accounts) {
             bal1 = await web3.eth.getBalance(accounts[4]);
             balc1 = await web3.eth.getBalance(first.address);
 
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: vs(5)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(5)});
 
             await increaseTime(fduration + sduration);
 
@@ -151,8 +151,6 @@ contract('StageFirst', function (accounts) {
             assert.equal(+(await token.balanceOf(token.address)), vs(100000000));
             bal2 = await web3.eth.getBalance(accounts[4]);
             balc2 = await web3.eth.getBalance(first.address);
-
-            assert(0 < bal2 - bal1 < 0.01 * decimals);
 
             assert.equal(balc1, 0);
             assert.equal(balc2, 0);
@@ -189,7 +187,7 @@ contract('StageFirst', function (accounts) {
             balc1 = await web3.eth.getBalance(first.address);
 
             try {
-                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: vs(1)});
+                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: vs(1)});
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Investing time is up"));}
 
@@ -207,9 +205,9 @@ contract('StageFirst', function (accounts) {
             balc1 = await web3.eth.getBalance(first.address);
 
             try {
-                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: 0});
+                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: 0});
                 throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Value must be greater than 0"));}
+            } catch (error) {assert(error.message.includes("Investment must be equal or greater than 0.1 ether"));}
 
             bal2 = await web3.eth.getBalance(accounts[2]);
             balc2 = await web3.eth.getBalance(first.address);
@@ -224,13 +222,13 @@ contract('StageFirst', function (accounts) {
             bal1 = await web3.eth.getBalance(accounts[7]);
             balc1 = await web3.eth.getBalance(first.address);
 
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: vs(50)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: vs(80)});
-            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 150000, value: vs(5)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(50)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 170000, value: vs(80)});
+            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 170000, value: vs(5)});
 
             try {
-                await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 150000, value: vs(5)});
+                await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 170000, value: vs(5)});
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Cap already reached"));}
 
@@ -247,9 +245,9 @@ contract('StageFirst', function (accounts) {
             bal1 = await web3.eth.getBalance(accounts[9]);
             balc1 = await web3.eth.getBalance(first.address);
 
-            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[8], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[9], to: first.address, gas: 150000, value: vs(40)});
+            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[8], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[9], to: first.address, gas: 170000, value: vs(40)});
 
             bal2 = await web3.eth.getBalance(accounts[9]);
             balc2 = await web3.eth.getBalance(first.address);
@@ -259,7 +257,7 @@ contract('StageFirst', function (accounts) {
             assert.equal(balc1, 0);
             assert.equal(balc2, vs(220));
 
-            await web3.eth.sendTransaction({from: accounts[9], to: first.address, gas: 150000, value: vs(10)});
+            await web3.eth.sendTransaction({from: accounts[9], to: first.address, gas: 170000, value: vs(10)});
 
             bal2 = await web3.eth.getBalance(accounts[9]);
             balc2 = await web3.eth.getBalance(first.address);

@@ -41,7 +41,7 @@ function vs(value){
 }
 
 
-contract('StageFirst', function (accounts) {
+contract('StageFirst\n\tstages.4\n', function (accounts) {
 
     let tokenOwner = accounts[0];
     let investOwner = accounts[1];
@@ -52,8 +52,8 @@ contract('StageFirst', function (accounts) {
 
     let firstStageBalance = vs(675000);
 
-    let fduration = 12*day;
-    let sduration = 14*day;
+    let fduration = 15*day;
+    let sduration = 15*day;
 
     let bal1, bal2, balc1, balc2;
 
@@ -66,22 +66,19 @@ contract('StageFirst', function (accounts) {
         });
 
         it('try to close after first duration, but before second, when cap not reached', async () => {
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: 100});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: v(0.1)});
 
             await increaseTime(fduration);
 
-            try {
-                await first.close({from: investOwner});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Investing are still ongoing"));}
+            await first.close({from: investOwner});
 
-            assert.equal(+(await first.investments(accounts[2])), 100);
-            assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(+(await first.totalInvested()), 100);
+            assert.equal(+(await first.investments(accounts[2])), v(0.1));
+            // assert.equal(await first.investors(0), accounts[2]);
+            assert.equal(+(await first.invested()), v(0.1));
         });
 
         it('try to close before first duration, when cap not reached', async () => {
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: 100});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: v(0.1)});
 
             await increaseTime(2*day);
 
@@ -90,44 +87,47 @@ contract('StageFirst', function (accounts) {
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Investing are still ongoing"));}
 
-            assert.equal(+(await first.investments(accounts[2])), 100);
+            assert.equal(+(await first.investments(accounts[2])), v(0.1));
             assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(+(await first.totalInvested()), 100);
+            assert.equal(+(await first.invested()), v(0.1));
         });
 
         it('try to close before first duration, when cap reached', async () => {
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
 
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: vs(35)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: vs(10)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(35)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 170000, value: vs(10)});
 
             await increaseTime(2*day);
 
-            assert.equal(+(await first.totalInvested()), vs(225));
+            assert.equal(+(await first.invested()), vs(225));
 
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
-            assert(+(await web3.eth.getBalance(receiver)) < vs(100));
+            assert(+(await web3.eth.getBalance(receiver)) < vs(101));
 
             try {
                 await first.close({from: investOwner});
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Investing are still ongoin"));}
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
+
+            assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
+            assert(+(await web3.eth.getBalance(receiver)) < vs(101));
         });
 
         it('try to close after first duration, but before second duration, when cap reached', async () => {
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
 
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 150000, value: vs(50)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 150000, value: vs(80)});
-            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 150000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 150000, value: vs(5)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(50)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 170000, value: vs(80)});
+            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 170000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 170000, value: vs(5)});
 
             await increaseTime(fduration);
 
-            assert.equal(+(await first.totalInvested()), vs(225));
+            assert.equal(+(await first.invested()), vs(225));
 
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
             assert(+(await web3.eth.getBalance(receiver)) < vs(100));

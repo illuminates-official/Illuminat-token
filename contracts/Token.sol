@@ -12,25 +12,15 @@ contract Token is Ownable, ERC20 {
     string public constant symbol = "LUM";
     uint public constant decimals = 18;
 
-    address public advisors;
-    uint private advisorsAmount;
-    bool private isAdvisorsPaid;
+    uint public advisorsAmount;
+    uint public bountyAmount;
+    uint public teamAmount;
 
-    address public bounty;
-    uint private bountyAmount;
-    bool private isBountyPaid;
-
-    address public team;
-    uint private teamAmount;
-    bool private isTeamPaid;
-
-    address public deposit;
+    address public depositAddress;
     uint private deployTime;
-    uint private freezingTime = 2 * 365 days;
+    uint private lockTime = 2 * 365 days;
 
-    address public freezeAddress;
-
-    event PayService(string indexed _service, uint indexed toDeposite);
+    event PayService(string indexed _service, uint indexed _toDepositAddress);
 
     constructor() public {
         deployTime = now;
@@ -39,8 +29,6 @@ contract Token is Ownable, ERC20 {
         bountyAmount = 2000000 * 10 ** decimals;
         teamAmount = 15000000 * 10 ** decimals;
 
-        _isFreezed = true;
-
         _mint(address(this), 100000000 * 10 ** decimals);
     }
 
@@ -48,34 +36,13 @@ contract Token is Ownable, ERC20 {
         revert();
     }
 
-    function setDepositeAddress(address _deposit) public onlyOwner {
-        deposit = _deposit;
-    }
-
-    function setPlatformAddress(address platform) public onlyOwner {
-        _platformAddress = platform;
-    }
-
-    function setFreezeAddress(address account) public onlyOwner{
-        freezeAddress = account;
-    }
-
-    function setTeamAddress(address account) public onlyOwner{
-        team = account;
-    }
-
-    function setBountyAddress(address account) public onlyOwner{
-        bounty = account;
-        setFreezeAddress(account);
-    }
-
-    function setAdvisorsAddress(address account) public onlyOwner{
-        advisors = account;
+    function setDepositAddress(address _depositAddress) public onlyOwner {
+        depositAddress = _depositAddress;
     }
 
     function payService(string memory service, address _to, uint amount) public {
         uint tenPercents = amount.div(10);
-        transfer(deposit, tenPercents);
+        transfer(depositAddress, tenPercents);
         _burn(msg.sender, tenPercents);
         transfer(_to, amount.sub(tenPercents.mul(2)));
 
@@ -90,41 +57,33 @@ contract Token is Ownable, ERC20 {
         }
     }
 
-    function getTeamTokens() public onlyOwner {
-        require(now >= deployTime.add(freezingTime), "2 years have not expired");
-        require(!isTeamPaid, "Already paid");
-        isTeamPaid = true;
-        _transfer(address(this), team, teamAmount);
+    function transferTokens(address to, uint amount) public onlyOwner {
+        _transfer(address(this), to, amount);
     }
 
-    function getAdvisorsTokens() public onlyOwner {
-        require(!isAdvisorsPaid, "Already paid");
-        isAdvisorsPaid = true;
-        _transfer(address(this), advisors, advisorsAmount);
+    function sendTeamTokens(address teamAddress, uint amount) public onlyOwner {
+        if(now < deployTime.add(lockTime)){
+            require(teamAmount.sub(10000000*10**decimals) >= amount, "Not enough unlocked tokens amount");
+        } else {
+            require(teamAmount >= amount, "Not enough tokens amount");
+        }
+        teamAmount = teamAmount.sub(amount);
+        _transfer(address(this), teamAddress, amount);
     }
 
-    function getBountyTokens() public onlyOwner {
-        require(!isBountyPaid, "Already paid");
-        isBountyPaid = true;
-        _transfer(address(this), bounty, bountyAmount);
+    function sendAdvisorsTokens(address advisorsAddress, uint amount) public onlyOwner {
+        if(now < deployTime.add(lockTime)){
+            require(advisorsAmount.sub(650000*10**decimals) >= amount, "Not enough unlocked tokens amount");
+        } else {
+            require(advisorsAmount >= amount, "Not enough tokens amount");
+        }
+        advisorsAmount = advisorsAmount.sub(amount);
+        _transfer(address(this), advisorsAddress, amount);
     }
 
-    function frozenTransfer(address account, uint balance) public {
-        require(msg.sender == freezeAddress, "Sender isn't a freeze address");
-        _frozenTokens[account] = _frozenTokens[account].add(balance);
-        _transfer(msg.sender, account, balance);
-    }
-
-    function unfreeze() public onlyOwner {
-        require(_isFreezed);
-
-        _isFreezed = false;
-    }
-
-    function unfreezeMyTokens() public {
-        require(!_isFreezed);
-        require(_frozenTokens[msg.sender] > 0);
-
-        _frozenTokens[msg.sender] = 0;
+    function sendBountyTokens(address bountyAddress, uint amount) public onlyOwner {
+        require(bountyAmount >= amount, "Not enough tokens amount");
+        bountyAmount = bountyAmount.sub(amount);
+        _transfer(address(this), bountyAddress, amount);
     }
 }
