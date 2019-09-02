@@ -76,14 +76,14 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
         });
     });
 
-        describe('Gas usage', async () => {
+        describe('Limit number of accounts', async () => {
             beforeEach('init', async () => {
                 token = await TokenContract.new({from: tokenOwner});
                 first = await StageFirstContract.new({from: investOwner});
                 await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
                 await first.setToken(token.address, {from: investOwner});
             });
-            // limit set to 5
+
             it('returning ether', async () => {
                 balc1 = await web3.eth.getBalance(first.address);
 
@@ -112,7 +112,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
 
                 assert.equal(balc1, 0);
                 assert.equal(balc2, vs(6));
-                assert.equal(balc3, vs(2));
+                assert.equal(balc3, vs(1));
 
                 await first.close({from: investOwner});
 
@@ -145,7 +145,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
 
             await first.close({from: investOwner});
 
-            assert.equal(+(await token.balanceOf(accounts[2])), 0);
+            assert.equal(+(await token.balanceOf(accounts[2])), vs(120000));
             assert.equal(+(await token.balanceOf(accounts[3])), 0);
             assert.equal(+(await token.balanceOf(accounts[4])), vs(120000));
             assert.equal(+(await token.balanceOf(accounts[5])), vs(120000));
@@ -153,7 +153,6 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[7])), vs(75000));
 
             balc3 = await web3.eth.getBalance(first.address);
-
             bal1 = await web3.eth.getBalance(receiver);
 
             assert.equal(balc1, 0);

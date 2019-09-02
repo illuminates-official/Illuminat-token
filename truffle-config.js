@@ -10,13 +10,13 @@ module.exports = {
   },
 
   mocha: {
-    reporter: 'eth-gas-reporter',
-    reporterOptions : {
-      currency: 'USD',
-      showTimeSpent: true,
-      excludeContracts: ['Migrations'],
-      onlyCalledMethods: true
-     }
+    // reporter: 'eth-gas-reporter',
+    // reporterOptions : {
+    //   currency: 'USD',
+    //   showTimeSpent: true,
+    //   excludeContracts: ['Migrations'],
+    //   onlyCalledMethods: true
+    //  }
   },
 
   compilers: {
@@ -25,7 +25,7 @@ module.exports = {
       docker: false,       // Use "0.5.1" you've installed locally with docker (default: false)
       settings: {         // See the solidity docs for advice about optimization and evmVersion
        optimizer: {
-         enabled: true,
+         enabled: false,
          runs: 200
        },
        evmVersion: "byzantium"

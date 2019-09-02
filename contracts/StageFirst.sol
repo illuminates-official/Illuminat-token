@@ -11,8 +11,7 @@ contract StageFirst is Ownable {
     IERC20 public token;
     address payable public receiver;
 
-    uint constant private firstDuration = 15 days;
-    uint constant private secondDuration = 15 days;
+    uint constant private duration = 15 days;
     uint private deployTime;
     uint private initTokens;
 
@@ -24,28 +23,18 @@ contract StageFirst is Ownable {
 
     event Investment(address indexed sender, uint indexed value);
 
-    modifier capReached() {
-        require(invested == cap, "Cap not reached yet");
-        _;
-    }
-
     modifier capNotReached() {
         require(invested < cap, "Cap already reached");
         _;
     }
 
     modifier fundraisingTimeOut() {
-        require(now >= deployTime.add(firstDuration), "Investing are still ongoing");
-        _;
-    }
-
-    modifier timeOut() {
-        require(now >= deployTime.add(firstDuration.add(secondDuration)), "Investing are still ongoing");
+        require(now >= deployTime.add(duration), "Investing are still ongoing");
         _;
     }
 
     modifier inTime() {
-        require(now < deployTime.add(firstDuration.add(secondDuration)), "Investing time is up");
+        require(now < deployTime.add(duration.mul(2)), "Investing time is up");
         _;
     }
 
@@ -70,7 +59,7 @@ contract StageFirst is Ownable {
             msg.sender.transfer(msg.value.sub(value));
         } else value = msg.value;
 
-        if(investments[msg.sender] <= 0 && now < deployTime.add(firstDuration)){
+        if(investments[msg.sender] <= 0 && now < deployTime.add(duration)){
             _investors.push(msg.sender);
             investors.push(msg.sender);
         }
@@ -79,7 +68,7 @@ contract StageFirst is Ownable {
         invested = invested.add(value);
         emit Investment(msg.sender, value);
 
-        if(now > deployTime.add(firstDuration)){
+        if(now > deployTime.add(duration)){
             _sendEther(receiver, value);
             _transfer(msg.sender, tokensAmount(value));
         }
@@ -92,7 +81,7 @@ contract StageFirst is Ownable {
             if (address(this).balance > 0) receiveEther();
             if (balance() > 0) sendTokens();
         }
-        if (now >= deployTime.add(firstDuration.add(secondDuration)) && _investors.length == 0) {
+        if (now >= deployTime.add(duration.mul(2)) && _investors.length == 0) {
             if (balance() > 0) _transfer(address(token), balance());
         }
     }
@@ -106,21 +95,29 @@ contract StageFirst is Ownable {
     }
 
     function sendTokens() private {
-        int req = -1;
-        int len = int(_investors.length);
-        if (len > 5) req = len - 5;
-        for (int i = len - 1; i > req; i--) {
-            _transfer(_investors[uint(i)], tokensAmount(investments[_investors[uint(i)]]));
+        uint req = 40;
+        if (_investors.length < req) req = _investors.length - 1;
+        if (_investors.length == 1) {
+            _transfer(_investors[0], tokensAmount(investments[_investors[0]]));
+            return;
+        }
+        for (uint i = 0; i < req ; i++) {
+            _transfer(_investors[0], tokensAmount(investments[_investors[0]]));
+            _investors[0] = _investors[_investors.length - 1];
             _investors.pop();
         }
     }
 
     function returnEther() private {
-        int req = -1;
-        int len = int(_investors.length);
-        if (len > 5) req = len - 5;
-        for (int i = len - 1; i > req; i--) {
-            _sendEther(_investors[uint(i)], investments[_investors[uint(i)]]);
+        uint req = 40;
+        if(_investors.length < req) req = _investors.length - 1;
+        if (_investors.length == 1) {
+            _sendEther(_investors[0], investments[_investors[0]]);
+            return;
+        }
+        for (uint i = 0; i < req ; i++) {
+            _sendEther(_investors[0], investments[_investors[0]]);
+            _investors[0] = _investors[_investors.length - 1];
             _investors.pop();
         }
     }
