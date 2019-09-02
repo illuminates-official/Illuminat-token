@@ -16,7 +16,6 @@ contract StageFirst is Ownable {
     uint private initTokens;
 
     mapping (address => uint) public investments;
-    mapping (address => uint) private _etherEquality;
     address payable[] public investors;
     uint public invested;
     uint public cap;
@@ -71,12 +70,11 @@ contract StageFirst is Ownable {
         if(now > deployTime.add(duration)){
             _sendEther(receiver, value);
             _transfer(msg.sender, tokensAmount(value));
-            _etherEquality[msg.sender] = _etherEquality[msg.sender].add(value);
         }
     }
 
     function close() public onlyOwner fundraisingTimeOut {
-        if (invested < 50 ether) {
+        if (invested < 50 ether && now >= deployTime.add(duration.mul(2))) {
             if (address(this).balance > 0) returnEther();
         } else {
             if (address(this).balance > 0) receiveEther();
@@ -96,32 +94,26 @@ contract StageFirst is Ownable {
     }
 
     function sendTokens() private {
-        uint req = 5;
-        uint amount;
+        uint req = 40;
         if(req.add(_index) < investors.length) {
             req = req.add(_index);
         } else {
             req = investors.length;
         }
         for (_index; _index < req; _index++) {
-            amount = investments[investors[_index]].sub(_etherEquality[investors[_index]]);
-            _etherEquality[investors[_index]] = _etherEquality[investors[_index]].add(amount);
-            _transfer(investors[_index], tokensAmount(amount));
+            _transfer(investors[_index], tokensAmount(investments[investors[_index]]));
         }
     }
 
     function returnEther() private {
-        uint req = 5;
-        uint amount;
+        uint req = 40;
         if(req.add(_index) < investors.length) {
             req = req.add(_index);
         } else {
             req = investors.length;
         }
         for (_index; _index < req; _index++) {
-            amount = investments[investors[_index]].sub(_etherEquality[investors[_index]]);
-            _etherEquality[investors[_index]] = _etherEquality[investors[_index]].add(amount);
-            _sendEther(investors[_index], amount);
+            _sendEther(investors[_index], investments[investors[_index]]);
         }
     }
 

@@ -105,13 +105,16 @@ contract('StageFirst\n\tstages.4\n', function (accounts) {
             assert.equal(+(await first.invested()), vs(225));
 
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
-            assert(+(await web3.eth.getBalance(receiver)) < vs(100));
+            assert(+(await web3.eth.getBalance(receiver)) < vs(101));
 
             try {
                 await first.close({from: investOwner});
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Investing are still ongoin"));}
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
+
+            assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
+            assert(+(await web3.eth.getBalance(receiver)) < vs(101));
         });
 
         it('try to close after first duration, but before second duration, when cap reached', async () => {
