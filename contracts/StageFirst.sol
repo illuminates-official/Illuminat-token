@@ -16,10 +16,11 @@ contract StageFirst is Ownable {
     uint private initTokens;
 
     mapping (address => uint) public investments;
+    mapping (address => uint) private _etherEquality;
     address payable[] public investors;
-    address payable[] private _investors;
     uint public invested;
     uint public cap;
+    uint private _index;
 
     event Investment(address indexed sender, uint indexed value);
 
@@ -59,8 +60,7 @@ contract StageFirst is Ownable {
             msg.sender.transfer(msg.value.sub(value));
         } else value = msg.value;
 
-        if(investments[msg.sender] <= 0 && now < deployTime.add(duration)){
-            _investors.push(msg.sender);
+        if(investments[msg.sender] <= 0) {
             investors.push(msg.sender);
         }
 
@@ -71,6 +71,7 @@ contract StageFirst is Ownable {
         if(now > deployTime.add(duration)){
             _sendEther(receiver, value);
             _transfer(msg.sender, tokensAmount(value));
+            _etherEquality[msg.sender] = _etherEquality[msg.sender].add(value);
         }
     }
 
@@ -81,7 +82,7 @@ contract StageFirst is Ownable {
             if (address(this).balance > 0) receiveEther();
             if (balance() > 0) sendTokens();
         }
-        if (now >= deployTime.add(duration.mul(2)) && _investors.length == 0) {
+        if (now >= deployTime.add(duration.mul(2))) {
             if (balance() > 0) _transfer(address(token), balance());
         }
     }
@@ -95,30 +96,32 @@ contract StageFirst is Ownable {
     }
 
     function sendTokens() private {
-        uint req = 40;
-        if (_investors.length < req) req = _investors.length - 1;
-        if (_investors.length == 1) {
-            _transfer(_investors[0], tokensAmount(investments[_investors[0]]));
-            return;
+        uint req = 5;
+        uint amount;
+        if(req.add(_index) < investors.length) {
+            req = req.add(_index);
+        } else {
+            req = investors.length;
         }
-        for (uint i = 0; i < req ; i++) {
-            _transfer(_investors[0], tokensAmount(investments[_investors[0]]));
-            _investors[0] = _investors[_investors.length - 1];
-            _investors.pop();
+        for (_index; _index < req; _index++) {
+            amount = investments[investors[_index]].sub(_etherEquality[investors[_index]]);
+            _etherEquality[investors[_index]] = _etherEquality[investors[_index]].add(amount);
+            _transfer(investors[_index], tokensAmount(amount));
         }
     }
 
     function returnEther() private {
-        uint req = 40;
-        if(_investors.length < req) req = _investors.length - 1;
-        if (_investors.length == 1) {
-            _sendEther(_investors[0], investments[_investors[0]]);
-            return;
+        uint req = 5;
+        uint amount;
+        if(req.add(_index) < investors.length) {
+            req = req.add(_index);
+        } else {
+            req = investors.length;
         }
-        for (uint i = 0; i < req ; i++) {
-            _sendEther(_investors[0], investments[_investors[0]]);
-            _investors[0] = _investors[_investors.length - 1];
-            _investors.pop();
+        for (_index; _index < req; _index++) {
+            amount = investments[investors[_index]].sub(_etherEquality[investors[_index]]);
+            _etherEquality[investors[_index]] = _etherEquality[investors[_index]].add(amount);
+            _sendEther(investors[_index], amount);
         }
     }
 

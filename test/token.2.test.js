@@ -187,5 +187,24 @@ contract('Token\n\ttoken.2\n', function (accounts) {
             assert.equal(+(await token.balanceOf(advisors)), 0);
             assert.equal(+(await token.advisorsAmount()), vs(1000000));
         });
+
+        it('transfer tokens', async () => {
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+
+            await token.transferTokens(advisors, vs(1000), {from: tokenOwner});
+
+            assert.equal(+(await token.balanceOf(advisors)), vs(1000));
+        });
+        
+        it('transfer tokens (not by owner)', async () => {
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+
+            try {
+                await token.transferTokens(advisors, vs(1000), {from: bounty});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
+
+            assert.equal(+(await token.balanceOf(advisors)), 0);
+        });
     });
 });

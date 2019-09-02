@@ -16,11 +16,11 @@ contract Token is Ownable, ERC20 {
     uint public bountyAmount;
     uint public teamAmount;
 
-    address public deposit;
+    address public depositAddress;
     uint private deployTime;
     uint private lockTime = 2 * 365 days;
 
-    event PayService(string indexed _service, uint indexed toDeposite);
+    event PayService(string indexed _service, uint indexed _toDepositAddress);
 
     constructor() public {
         deployTime = now;
@@ -36,13 +36,13 @@ contract Token is Ownable, ERC20 {
         revert();
     }
 
-    function setDepositAddress(address _deposit) public onlyOwner {
-        deposit = _deposit;
+    function setDepositAddress(address _depositAddress) public onlyOwner {
+        depositAddress = _depositAddress;
     }
 
     function payService(string memory service, address _to, uint amount) public {
         uint tenPercents = amount.div(10);
-        transfer(deposit, tenPercents);
+        transfer(depositAddress, tenPercents);
         _burn(msg.sender, tenPercents);
         transfer(_to, amount.sub(tenPercents.mul(2)));
 
