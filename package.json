@@ -1,0 +1,29 @@
+{
+  "name": "illuminat-token",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "private": true,
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "truffle": "truffle",
+    "td": "truffle develop",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/illuminates-official/Illuminat-token.git"
+  },
+  "author": "",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/illuminates-official/Illuminat-token/issues"
+  },
+  "homepage": "https://github.com/illuminates-official/Illuminat-token#readme",
+  "dependencies": {
+    "eth-gas-reporter": "^0.2.11",
+    "truffle": "^5.0.35"
+  }
+}

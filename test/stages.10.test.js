@@ -76,7 +76,7 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[2])), vs(300));
         });
     });
-
+        //in StageFirst.sol req = 5;
         describe('Limit number of accounts', async () => {
             beforeEach('init', async () => {
                 token = await TokenContract.new({from: tokenOwner});
