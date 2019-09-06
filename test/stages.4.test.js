@@ -66,7 +66,7 @@ contract('StageFirst\n\tstages.4\n', function (accounts) {
         });
 
         it('try to close after first duration, but before second, when cap not reached', async () => {
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: v(0.1)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: v(0.1)});
 
             await increaseTime(fduration);
 
@@ -78,7 +78,7 @@ contract('StageFirst\n\tstages.4\n', function (accounts) {
         });
 
         it('try to close before first duration, when cap not reached', async () => {
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: v(0.1)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: v(0.1)});
 
             await increaseTime(2*day);
 
@@ -95,15 +95,14 @@ contract('StageFirst\n\tstages.4\n', function (accounts) {
         it('try to close before first duration, when cap reached', async () => {
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
 
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 170000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 170000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(35)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 170000, value: vs(10)});
+            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 110000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 110000, value: vs(35)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 110000, value: vs(10)});
 
             await increaseTime(2*day);
 
             assert.equal(+(await first.invested()), vs(225));
-
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
             assert(+(await web3.eth.getBalance(receiver)) < vs(101));
 
@@ -111,8 +110,8 @@ contract('StageFirst\n\tstages.4\n', function (accounts) {
                 await first.close({from: investOwner});
                 throw "Fail!\n Exception must be thrown before";
             } catch (error) {assert(error.message.includes("Investing are still ongoin"));}
-            assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
 
+            assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
             assert(+(await web3.eth.getBalance(receiver)) >= vs(99));
             assert(+(await web3.eth.getBalance(receiver)) < vs(101));
         });
@@ -120,10 +119,10 @@ contract('StageFirst\n\tstages.4\n', function (accounts) {
         it('try to close after first duration, but before second duration, when cap reached', async () => {
             assert.equal(+(await token.balanceOf(first.address)), firstStageBalance);
 
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 170000, value: vs(50)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 170000, value: vs(80)});
-            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 170000, value: vs(90)});
-            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 170000, value: vs(5)});
+            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 110000, value: vs(50)});
+            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 110000, value: vs(80)});
+            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 110000, value: vs(90)});
+            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 110000, value: vs(5)});
 
             await increaseTime(fduration);
 
