@@ -12,9 +12,12 @@ contract Deposit is Ownable {
     mapping(address => uint) public paid;
     mapping(address => uint) public balance;
 
-    constructor() public {
+    event Replenish(address indexed _account, uint indexed _amount);
+    event Withdrawal(address indexed _account, uint indexed _amount);
+    event DepositTransfer(address indexed _from, address indexed _to, uint indexed _amount);
+    event ServicePayment(address indexed payer, )
 
-    }
+    constructor() public {}
 
     function() external {
         revert();
@@ -32,22 +35,26 @@ contract Deposit is Ownable {
         balance[msg.sender] = balance[msg.sender].sub(amount);
         balance[to] = balance[to].add(amount);
         token.transferFrom(msg.sender, to, amount);
+        emit DepositTransfer(msg.sender, to, amount);
     }
 
     function replenishBalance(uint amount) public {
         balance[msg.sender] = balance[msg.sender].add(amount);
         token.transferFrom(msg.sender, address(this), amount);
+        emit Replenish(msg.sender, amount);
     }
 
     function withdraw() public {
         uint _balance = balance[msg.sender];
         balance[msg.sender] = 0;
         _transfer(msg.sender, _balance);
+        emit Withdrawal(msg.sender, _balance);
     }
 
     function withdraw(uint amount) public {
         balance[msg.sender] = balance[msg.sender].sub(amount);
         _transfer(msg.sender, amount);
+        emit Withdrawal(msg.sender, amount);
     }
 
     function payService(string memory service, address _to, uint amount) public {
@@ -58,7 +65,4 @@ contract Deposit is Ownable {
     function _transfer(address to, uint amount) private {
         token.transfer(to, amount);
     }
-
-
-
 }

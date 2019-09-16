@@ -30,13 +30,53 @@ contract('Deposit', function (accounts) {
             await token.approve(deposit.address, vs(100000), {from: accounts[3]});
         });
 
-        it('try to pay', async () => {
+        it('replenishing of the balance', async () => {
             await deposit.replenishBalance(vs(10000), {from: accounts[3]});
+
+            assert.equal(+(await token.totalSupply()), vs(100000000));
+
             await deposit.payService("test", service, vs(10), {from: accounts[3]});
 
+            assert.equal(+(await token.totalSupply()), vs(99999999));
             assert.equal(+(await token.balanceOf(accounts[3])), vs(90000));
             assert.equal(+(await token.balanceOf(service)), vs(8));
             assert.equal(+(await deposit.paid(accounts[3])), vs(10));
+        });
+
+        it('withdrawal', async () => {
+            await deposit.replenishBalance(vs(10000), {from: accounts[3]});
+
+            assert.equal(+(await deposit.balance(accounts[3])), vs(10000));
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(90000));
+            assert.equal(+(await token.balanceOf(deposit.address)), vs(10000));
+
+            await deposit.withdraw(vs(100), {from: accounts[3]});
+
+            assert.equal(+(await deposit.balance(accounts[3])), vs(9900));
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(90100));
+            assert.equal(+(await token.balanceOf(deposit.address)), vs(9900));
+
+            await deposit.methods["withdraw()"]({from: accounts[3]});
+
+            assert.equal(+(await deposit.balance(accounts[3])), 0);
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(100000));
+            assert.equal(+(await token.balanceOf(deposit.address)), 0);
+        });
+
+        it('transfer on deposit contract', async () => {
+            await deposit.replenishBalance(vs(10000), {from: accounts[3]});
+
+            assert.equal(+(await deposit.balance(accounts[3])), vs(10000));
+            assert.equal(+(await deposit.balance(accounts[4])), 0);
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(90000));
+            assert.equal(+(await token.balanceOf(deposit.address)), vs(10000));
+
+            await deposit.transfer(accounts[4], vs(100), {from: accounts[3]});
+
+            assert.equal(+(await deposit.balance(accounts[3])), vs(9900));
+            assert.equal(+(await deposit.balance(accounts[4])), vs(100));
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(89900));
+            assert.equal(+(await token.balanceOf(deposit.address)), vs(10000));
         });
     });
 });
