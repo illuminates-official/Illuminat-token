@@ -11,9 +11,8 @@ contract PaymentService is Ownable {
     IToken public token;
     IDeposit public deposit;
 
-    mapping(address => uint) public paid;
-    mapping(address => uint) public balanceOf;
-    mapping(address => uint) public heldBalanceOf;
+    mapping(address => uint) public _balances;
+    mapping(address => uint) public _heldBalances;
 
     event Replenish(address indexed _account, uint indexed _amount);
     event Withdrawal(address indexed _account, uint indexed _amount);
@@ -39,50 +38,59 @@ contract PaymentService is Ownable {
     }
 
     function transfer(address to, uint amount) public {
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(amount);
-        balanceOf[to] = balanceOf[to].add(amount);
+        require(amount <= _balances[msg.sender].sub(_heldBalances[msg.sender]), "Not enough unhold tokens");
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        _balances[to] = _balances[to].add(amount);
         token.transferFrom(msg.sender, to, amount);
         emit DepositTransfer(msg.sender, to, amount);
     }
 
     function replenishBalance(uint amount) public {
-        balanceOf[msg.sender] = balanceOf[msg.sender].add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
         token.transferFrom(msg.sender, address(this), amount);
         emit Replenish(msg.sender, amount);
     }
 
     function withdraw() public {
-        uint _balanceOf = balanceOf[msg.sender];
-        balanceOf[msg.sender] = 0;
-        _transfer(msg.sender, _balanceOf);
-        emit Withdrawal(msg.sender, _balanceOf);
+        uint balance = _balances[msg.sender].sub(_heldBalances[msg.sender]);
+        _balances[msg.sender] = _heldBalances[msg.sender];
+        _transfer(msg.sender, balance);
+        emit Withdrawal(msg.sender, balance);
     }
 
     function withdraw(uint amount) public {
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(amount);
+        require(amount <= _balances[msg.sender].sub(_heldBalances[msg.sender]), "Not enough unhold tokens");
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
         _transfer(msg.sender, amount);
         emit Withdrawal(msg.sender, amount);
     }
 
     function hold(uint amount) public {
-        require(amount >= balanceOf[msg.sender], "Not enough balance on payment service contract");
-        heldBalanceOf[msg.sender] = heldBalanceOf[msg.sender].add(amount);
+        require(amount >= _balances[msg.sender], "Not enough balance on payment service contract");
+        _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
     }
 
     function unHold(uint amount) public {
-        require(amount <= heldBalanceOf[msg.sender], "Not enough held balance on payment service contract");
-        heldBalanceOf[msg.sender] = heldBalanceOf[msg.sender].sub(amount);
+        require(amount <= _heldBalances[msg.sender], "Not enough held balance on payment service contract");
+        _heldBalances[msg.sender] = _heldBalances[msg.sender].sub(amount);
     }
 
     function unHold() public {
-        heldBalanceOf[msg.sender] = 0
+        _heldBalances[msg.sender] = 0;
     }
 
     function payService(string memory service, address _to, uint amount) public {
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(amount);
-        deposit.payService(service, _to, amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
         token.payService(service, _to, amount);
         emit ServicePayment(msg.sender, _to, amount);
+    }
+
+    function balanceOf(address _account) public view returns(uint) {
+        return _balances[_account];
+    }
+
+    function heldBalanceOf(address _account) public view returns(uint) {
+        return _heldBalances[_account];
     }
 
     function _transfer(address to, uint amount) private {

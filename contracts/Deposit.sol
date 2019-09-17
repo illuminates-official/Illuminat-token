@@ -36,17 +36,15 @@ contract Deposit is Ownable {
         _transfer(to, amount);
     }
 
-    function payService(string memory service, address _to, uint amount) public {
-        require(msg.sender == paymentServiceAddress, "Sender is not payment service");
-        paid[msg.sender] = paid[msg.sender].add(amount);
-        emit ServicePayment(_to, service, amount);
-    }
-
-    function heldBalanceOf(address _account) public {
-        paymentService.heldBalanceOf(_account);
+    function heldBalanceOf(address _account) public view returns(uint) {
+        return paymentService.heldBalanceOf(_account);
     }
 
     function _transfer(address to, uint amount) private {
         token.transfer(to, amount);
+    }
+
+    function balance() public view returns(uint){
+        token.balanceOf(address(this));
     }
 }
