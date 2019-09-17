@@ -1,6 +1,6 @@
 pragma solidity ^0.5.11;
 
-interface IToken {
+interface IPaymentService {
 
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
@@ -11,4 +11,6 @@ interface IToken {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 
     function payService(string calldata service, address _to, uint amount) external;
+    function balanceOf(address _account) external;
+    function heldBalanceOf(address _account) external;
 }

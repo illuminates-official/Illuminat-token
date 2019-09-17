@@ -1,6 +1,6 @@
 pragma solidity ^0.5.11;
 
-interface IToken {
+interface IDeposit {
 
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
