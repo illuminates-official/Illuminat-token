@@ -11,8 +11,11 @@ contract PaymentService is Ownable {
     IToken public token;
     IDeposit public deposit;
 
-    mapping(address => uint) public _balances;
-    mapping(address => uint) public _heldBalances;
+    mapping(address => uint) private _balances;
+    mapping(address => uint) private _heldBalances;
+
+    address[] private _currentHolders;
+    uint private _totalHeld;
 
     event Replenish(address indexed _account, uint indexed _amount);
     event Withdrawal(address indexed _account, uint indexed _amount);
@@ -68,15 +71,23 @@ contract PaymentService is Ownable {
     function hold(uint amount) public {
         require(amount >= _balances[msg.sender], "Not enough balance on payment service contract");
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
+        _currentHolders.push(msg.sender);
+        _totalHeld = _totalHeld.add(amount);
     }
 
     function unHold(uint amount) public {
         require(amount <= _heldBalances[msg.sender], "Not enough held balance on payment service contract");
         _heldBalances[msg.sender] = _heldBalances[msg.sender].sub(amount);
+        if(_heldBalances[msg.sender] == 0) {
+            _removeHolder(getHolderIndex(msg.sender));
+        }
+        _totalHeld = _totalHeld.sub(amount);
     }
 
     function unHold() public {
+        _totalHeld = _totalHeld.sub(_heldBalances[msg.sender]);
         _heldBalances[msg.sender] = 0;
+        _removeHolder(getHolderIndex(msg.sender));
     }
 
     function payService(string memory service, address _to, uint amount) public {
@@ -93,7 +104,37 @@ contract PaymentService is Ownable {
         return _heldBalances[_account];
     }
 
+    function unHeldBalanceOf(address _account) public view returns(uint) {
+        return _balances[_account].sub(_heldBalances[_account]);
+    }
+
+    function currentHolders(uint index) public view returns(address) {
+        return _currentHolders[index];
+    }
+
+    function currentHoldersNumber() public view returns(uint) {
+        return _currentHolders.length;
+    }
+
+    function totalHeld() public view returns(uint) {
+        return _totalHeld;
+    }
+
     function _transfer(address to, uint amount) private {
         token.transfer(to, amount);
+    }
+
+    function getHolderIndex(address account) internal view returns(int) {
+        for (uint i = 0; i < _currentHolders.length; i++)
+            if(_currentHolders[i] == account)
+                return i;
+        revert("Holder not found");
+    }
+
+    function _removeHolder(uint index) private {
+        require(_currentHolders.length - 1 >= _currentHolders, "Holder not found");
+
+        _currentHolders[index] = _currentHolders[_currentHolders.length - 1];
+        _currentHolders.pop();
     }
 }

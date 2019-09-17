@@ -14,14 +14,21 @@ contract Deposit is Ownable {
 
     mapping(address => uint) public paid;
 
-    event ServicePayment(address indexed _service, string indexed service, uint indexed _amount);
-
     constructor() public {
         lastDistribution = now;
     }
 
     function() external {
         revert();
+    }
+
+    function distribute() public {
+        require(now >= lastDistribution.add(30 days));
+        uint currentBalance = balance();
+        for (uint i = 0; i < paymentService.currentHoldersNumber(); i++) {
+            _transfer(paymentService.currentHolders(i), currentBalance.mul(paymentService.heldBalanceOf(i).div(paymentService.totalHeld())));
+        }
+        lastDistribution = now;
     }
 
     function setToken(address _token) public onlyOwner {

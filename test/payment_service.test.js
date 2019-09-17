@@ -15,7 +15,7 @@ function vs(value){
 }
 
 
-contract('ps', function (accounts) {
+contract('PaymentService', function (accounts) {
 
     let tokenOwner = accounts[0];
     let psOwner = accounts[1];
