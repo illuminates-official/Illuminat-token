@@ -26,7 +26,10 @@ contract Deposit is Ownable {
         require(now >= lastDistribution.add(30 days));
         uint currentBalance = balance();
         for (uint i = 0; i < paymentService.currentHoldersNumber(); i++) {
-            _transfer(paymentService.currentHolders(i), currentBalance.mul(paymentService.heldBalanceOf(i).div(paymentService.totalHeld())));
+            _transfer(
+                paymentService.currentHolders(i),
+                currentBalance.mul(paymentService.heldBalanceOf(paymentService.currentHolders(i)).div(paymentService.totalHeld()))
+            );
         }
         lastDistribution = now;
     }
