@@ -77,5 +77,40 @@ contract('PaymentService', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[3])), vs(89900));
             assert.equal(+(await token.balanceOf(ps.address)), vs(10000));
         });
+
+        it('hold tokens', async () => {
+            await ps.replenishBalance(vs(10000), {from: accounts[3]});
+
+            assert.equal(+(await ps.balanceOf(accounts[3])), vs(10000));
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(90000));
+            assert.equal(+(await token.balanceOf(ps.address)), vs(10000));
+
+            await ps.hold(vs(2000), {from: accounts[3]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[3])), vs(2000));
+        });
+        
+        it('unhold tokens', async () => {
+            await ps.replenishBalance(vs(10000), {from: accounts[3]});
+
+            assert.equal(+(await ps.balanceOf(accounts[3])), vs(10000));
+            assert.equal(+(await token.balanceOf(accounts[3])), vs(90000));
+            assert.equal(+(await token.balanceOf(ps.address)), vs(10000));
+
+            await ps.hold(vs(2000), {from: accounts[3]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[3])), vs(2000));
+            assert.equal(+(await ps.unHeldBalanceOf(accounts[3])), vs(8000));
+
+            await ps.unHold(vs(300), {from: accounts[3]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[3])), vs(1700));
+            assert.equal(+(await ps.unHeldBalanceOf(accounts[3])), vs(8300));
+
+            await ps.methods["unHold()"]({from: accounts[3]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[3])), 0);
+            assert.equal(+(await ps.unHeldBalanceOf(accounts[3])), vs(10000));
+        });
     });
 });

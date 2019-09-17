@@ -69,7 +69,7 @@ contract PaymentService is Ownable {
     }
 
     function hold(uint amount) public {
-        require(amount >= _balances[msg.sender], "Not enough balance on payment service contract");
+        require(amount <= _balances[msg.sender], "Not enough balance on payment service contract");
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
         _currentHolders.push(msg.sender);
         _totalHeld = _totalHeld.add(amount);
@@ -124,7 +124,7 @@ contract PaymentService is Ownable {
         token.transfer(to, amount);
     }
 
-    function getHolderIndex(address account) internal view returns(uint) {
+    function getHolderIndex(address account) public view returns(uint) {
         for (uint i = 0; i < _currentHolders.length; i++)
             if(_currentHolders[i] == account)
                 return i;
@@ -132,7 +132,7 @@ contract PaymentService is Ownable {
     }
 
     function _removeHolder(uint index) private {
-        require(_currentHolders.length - 1 >= currentHoldersNumber(), "Holder not found");
+        require(_currentHolders.length >= currentHoldersNumber(), "Holder not found");
 
         _currentHolders[index] = _currentHolders[_currentHolders.length - 1];
         _currentHolders.pop();
