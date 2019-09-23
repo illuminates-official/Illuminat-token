@@ -25,6 +25,6 @@
   "dependencies": {
     "eth-gas-reporter": "^0.2.11",
     "jshint": "^2.10.2",
-    "truffle": "^5.0.35"
+    "truffle": "^5.0.37"
   }
 }

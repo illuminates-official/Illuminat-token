@@ -74,7 +74,7 @@ contract('PaymentService', function (accounts) {
 
             assert.equal(+(await ps.balanceOf(accounts[5])), vs(9900));
             assert.equal(+(await ps.balanceOf(accounts[4])), vs(100));
-            assert.equal(+(await token.balanceOf(accounts[5])), vs(89900));
+            assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
             assert.equal(+(await token.balanceOf(ps.address)), vs(10000));
         });
 
@@ -96,23 +96,23 @@ contract('PaymentService', function (accounts) {
             assert.equal(+(await ps.balanceOf(accounts[5])), vs(10000));
             assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
             assert.equal(+(await token.balanceOf(ps.address)), vs(10000));
-            assert.equal(+(await ps.currentHoldersNumber()), 0);
+            assert.equal(+(await ps.currentHoldersCount()), 0);
 
             await ps.hold(vs(2000), {from: accounts[5]});
 
-            assert.equal(+(await ps.currentHoldersNumber()), 1);
+            assert.equal(+(await ps.currentHoldersCount()), 1);
             assert.equal(+(await ps.heldBalanceOf(accounts[5])), vs(2000));
             assert.equal(+(await ps.unHeldBalanceOf(accounts[5])), vs(8000));
 
             await ps.unHold(vs(300), {from: accounts[5]});
 
-            assert.equal(+(await ps.currentHoldersNumber()), 1);
+            assert.equal(+(await ps.currentHoldersCount()), 1);
             assert.equal(+(await ps.heldBalanceOf(accounts[5])), vs(1700));
             assert.equal(+(await ps.unHeldBalanceOf(accounts[5])), vs(8300));
 
             await ps.methods["unHold()"]({from: accounts[5]});
 
-            assert.equal(+(await ps.currentHoldersNumber()), 0);
+            assert.equal(+(await ps.currentHoldersCount()), 0);
             assert.equal(+(await ps.heldBalanceOf(accounts[5])), 0);
             assert.equal(+(await ps.unHeldBalanceOf(accounts[5])), vs(10000));
         });
@@ -124,20 +124,20 @@ contract('PaymentService', function (accounts) {
             await ps.replenishBalance(vs(10000), {from: accounts[4]});
             await ps.replenishBalance(vs(10000), {from: accounts[5]});
 
-            assert.equal(+(await ps.currentHoldersNumber()), 0);
+            assert.equal(+(await ps.currentHoldersCount()), 0);
 
             await ps.hold(vs(2000), {from: accounts[4]});
             await ps.hold(vs(2000), {from: accounts[5]});
-            assert.equal(+(await ps.currentHoldersNumber()), 2);
+            assert.equal(+(await ps.currentHoldersCount()), 2);
 
             await ps.unHold(vs(300), {from: accounts[5]});
-            assert.equal(+(await ps.currentHoldersNumber()), 2);
+            assert.equal(+(await ps.currentHoldersCount()), 2);
 
             await ps.unHold(vs(1700), {from: accounts[5]});            
-            assert.equal(+(await ps.currentHoldersNumber()), 1);
+            assert.equal(+(await ps.currentHoldersCount()), 1);
 
             await ps.methods["unHold()"]({from: accounts[4]});
-            assert.equal(+(await ps.currentHoldersNumber()), 0);
+            assert.equal(+(await ps.currentHoldersCount()), 0);
         });
 
         it('pay service', async () => {
@@ -150,6 +150,33 @@ contract('PaymentService', function (accounts) {
             assert.equal(+(await token.balanceOf(ps.address)), vs(9900));
             assert.equal(+(await token.balanceOf(deposit.address)), vs(10));
             assert.equal(+(await token.totalSupply()), vs(99999990));
+        });
+    });
+
+    describe('Held balance and time for helding', async () => {
+        beforeEach('init', async () => {
+            token = await TokenContract.new({from: tokenOwner});
+            ps = await PSContract.new({from: psOwner});
+            deposit = await DepositContract.new({from: depositOwner});
+            await ps.setToken(token.address, {from: psOwner});
+            await deposit.setPaymentService(ps.address, {from: depositOwner});
+            await token.setDepositAddress(deposit.address, {from: tokenOwner});
+
+            await token.sendTokens([accounts[4]], [vs(100000)], {from: tokenOwner});
+            await token.sendTokens([accounts[5]], [vs(100000)], {from: tokenOwner});
+
+            await token.approve(ps.address, vs(100000), {from: accounts[4]});
+            await token.approve(ps.address, vs(100000), {from: accounts[5]});
+
+            await ps.replenishBalance(vs(10000), {from: accounts[4]});
+            await ps.replenishBalance(vs(10000), {from: accounts[5]});
+        });
+
+        it('', async () => {
+
+
+
+
         });
     });
 });

@@ -48,7 +48,6 @@ contract PaymentService is Ownable {
         require(amount <= _balances[msg.sender].sub(_heldBalances[msg.sender]), "Not enough unhold tokens");
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         _balances[to] = _balances[to].add(amount);
-        token.transferFrom(msg.sender, to, amount);
         emit DepositTransfer(msg.sender, to, amount);
     }
 
@@ -98,15 +97,15 @@ contract PaymentService is Ownable {
 
         _totalHeld = _totalHeld.sub(amount);
 
-        if(_heldTime[msg.sender][heldBalancesTimesOf(msg.sender).sub(1)] >= amount){
-            _heldTime[msg.sender][heldBalancesTimesOf(msg.sender).sub(1)] = _heldTime[msg.sender][heldBalancesTimesOf(msg.sender).sub(1)].sub(amount);
+        if(_heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)] >= amount){
+            _heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)] = _heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)].sub(amount);
 
-            emit Unhold(msg.sender, amount, heldBalancesTimesOf(msg.sender).sub(1));
+            emit Unhold(msg.sender, amount, heldBalancesTimesCountOf(msg.sender).sub(1));
 
-            if(_heldTime[msg.sender][heldBalancesTimesOf(msg.sender).sub(1)] == amount) _heldBalancesTimes[msg.sender].pop();
+            if(_heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)] == amount) _heldBalancesTimes[msg.sender].pop();
         } else {
             uint remaining = amount;
-            for(uint i = heldBalancesTimesOf(msg.sender).sub(1); i > 0; i--){
+            for(uint i = heldBalancesTimesCountOf(msg.sender).sub(1); i > 0; i--){
                 if(remaining >= _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]]) {
                     remaining = remaining.sub(_heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]]);
 
@@ -118,7 +117,7 @@ contract PaymentService is Ownable {
                     return;
                 } else {
                     _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]] = _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]].sub(remaining);
-                    remaining = 0;
+                    // remaining = 0;
                     return;
                 }
             }
@@ -129,7 +128,7 @@ contract PaymentService is Ownable {
         _totalHeld = _totalHeld.sub(_heldBalances[msg.sender]);
         _heldBalances[msg.sender] = 0;
 
-        for(uint i = heldBalancesTimesOf(msg.sender).sub(1); i > 0; i--){
+        for(uint i = heldBalancesTimesCountOf(msg.sender).sub(1); i > 0; i--){
             _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]] = 0;
             _heldBalancesTimes[msg.sender].pop();
         }
@@ -158,11 +157,27 @@ contract PaymentService is Ownable {
         return _currentHolders[index];
     }
 
-    function currentHoldersNumber() public view returns(uint) {
+    function heldBalancesTimesOf(address account) public view returns(uint[] memory) {
+        return _heldBalancesTimes[account];
+    }
+
+    function heldBalancesTimesRecordOf(address account, uint index) public view returns(uint) {
+        return _heldBalancesTimes[account][index];
+    }
+
+    function heldBalanceByTime(address account, uint time) public view returns(uint) {
+        return _heldTime[account][time];
+    }
+
+    function heldBalanceByTime(uint time) public view returns(uint) {
+        return _heldTime[msg.sender][time];
+    }
+
+    function currentHoldersCount() public view returns(uint) {
         return _currentHolders.length;
     }
 
-    function heldBalancesTimesOf(address account) public view returns(uint) {
+    function heldBalancesTimesCountOf(address account) public view returns(uint) {
         return _heldBalancesTimes[account].length;
     }
 
@@ -181,33 +196,19 @@ contract PaymentService is Ownable {
         revert("Holder not found");
     }
 
-    // function _removeHolder(uint index) private {
-    //     require(index <= currentHoldersNumber(), "Holder not found");
-
-    //     _currentHolders[index] = _currentHolders[_currentHolders.length.sub(1)];
-    //     _currentHolders.pop();
-    // }
-
-    // function _removeHoldTime(address account, uint index) private {
-    //     require(index <= heldBalancesTimesOf(account), "Time record not found");
-
-    //     _heldBalancesTimes[account][index] = _heldBalancesTimes[account][_currentHolders.length.sub(1)];
-    //     _heldBalancesTimes[account].pop();
-    // }
-
     function _removeHolder(uint index) private {
-        require(index <= currentHoldersNumber(), "Holder not found");
+        require(index <= currentHoldersCount(), "Holder not found");
 
-        for (uint i = index; i < currentHoldersNumber().sub(1); i++)
+        for (uint i = index; i < currentHoldersCount().sub(1); i++)
             _currentHolders[i] = _currentHolders[i.add(1)];
 
         _currentHolders.pop();
     }
 
     function _removeHoldTime(address account, uint index) private {
-        require(index <= heldBalancesTimesOf(account), "Time record not found");
+        require(index <= heldBalancesTimesCountOf(account), "Time record not found");
 
-        for (uint i = index; i < heldBalancesTimesOf(account).sub(1); i++)
+        for (uint i = index; i < heldBalancesTimesCountOf(account).sub(1); i++)
             _heldBalancesTimes[account][i] = _heldBalancesTimes[account][i.add(1)];
 
         _heldBalancesTimes[account].pop();

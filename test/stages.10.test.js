@@ -76,103 +76,104 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[2])), vs(300));
         });
     });
-        //in StageFirst.sol uint req = 5;
-        describe('Limit number of accounts', async () => {
-            beforeEach('init', async () => {
-                token = await TokenContract.new({from: tokenOwner});
-                first = await StageFirstContract.new({from: investOwner});
-                await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
-                await first.setToken(token.address, {from: investOwner});
-            });
+    // testing first stage limit for accounts
+        // //in StageFirst.sol uint req = 5;
+        // describe('Limit number of accounts', async () => {
+        //     beforeEach('init', async () => {
+        //         token = await TokenContract.new({from: tokenOwner});
+        //         first = await StageFirstContract.new({from: investOwner});
+        //         await token.sendTokens([first.address], [firstStageBalance], {from: tokenOwner});
+        //         await first.setToken(token.address, {from: investOwner});
+        //     });
 
-            it('returning ether', async () => {
-                balc1 = await web3.eth.getBalance(first.address);
+        //     it('returning ether', async () => {
+        //         balc1 = await web3.eth.getBalance(first.address);
 
-                await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 110000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 110000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 110000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 110000, value: v(1)});
-                await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 110000, value: v(1)});
+        //         await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: v(1)});
+        //         await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 110000, value: v(1)});
+        //         await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 110000, value: v(1)});
+        //         await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 110000, value: v(1)});
+        //         await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 110000, value: v(1)});
+        //         await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 110000, value: v(1)});
 
-                assert.equal(await first.investors(0), accounts[2]);
-                assert.equal(await first.investors(1), accounts[3]);
-                assert.equal(await first.investors(2), accounts[4]);
-                assert.equal(await first.investors(3), accounts[5]);
-                assert.equal(await first.investors(4), accounts[6]);
-                assert.equal(await first.investors(5), accounts[7]);
-                assert.equal(+(await first.invested()), v(6));
+        //         assert.equal(await first.investors(0), accounts[2]);
+        //         assert.equal(await first.investors(1), accounts[3]);
+        //         assert.equal(await first.investors(2), accounts[4]);
+        //         assert.equal(await first.investors(3), accounts[5]);
+        //         assert.equal(await first.investors(4), accounts[6]);
+        //         assert.equal(await first.investors(5), accounts[7]);
+        //         assert.equal(+(await first.invested()), v(6));
 
-                balc2 = await web3.eth.getBalance(first.address);
+        //         balc2 = await web3.eth.getBalance(first.address);
                 
-                await increaseTime(fduration+sduration+1);
+        //         await increaseTime(fduration+sduration+1);
 
-                await first.close({from: investOwner});
+        //         await first.close({from: investOwner});
 
-                balc3 = await web3.eth.getBalance(first.address);
+        //         balc3 = await web3.eth.getBalance(first.address);
 
-                assert.equal(balc1, 0);
-                assert.equal(balc2, vs(6));
-                assert.equal(balc3, vs(1));
+        //         assert.equal(balc1, 0);
+        //         assert.equal(balc2, vs(6));
+        //         assert.equal(balc3, vs(1));
 
-                await first.close({from: investOwner});
+        //         await first.close({from: investOwner});
 
-                balc3 = await web3.eth.getBalance(first.address);
+        //         balc3 = await web3.eth.getBalance(first.address);
 
-                assert.equal(balc3, 0);
-        });
+        //         assert.equal(balc3, 0);
+        // });
 
-        it('sending tokens', async () => {
-            balc1 = await web3.eth.getBalance(first.address);
+        // it('sending tokens', async () => {
+        //     balc1 = await web3.eth.getBalance(first.address);
 
-            await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 110000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 110000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 110000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 110000, value: v(40)});
-            await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 110000, value: v(25)});
+        //     await web3.eth.sendTransaction({from: accounts[2], to: first.address, gas: 110000, value: v(40)});
+        //     await web3.eth.sendTransaction({from: accounts[3], to: first.address, gas: 110000, value: v(40)});
+        //     await web3.eth.sendTransaction({from: accounts[4], to: first.address, gas: 110000, value: v(40)});
+        //     await web3.eth.sendTransaction({from: accounts[5], to: first.address, gas: 110000, value: v(40)});
+        //     await web3.eth.sendTransaction({from: accounts[6], to: first.address, gas: 110000, value: v(40)});
+        //     await web3.eth.sendTransaction({from: accounts[7], to: first.address, gas: 110000, value: v(25)});
 
-            assert.equal(await first.investors(0), accounts[2]);
-            assert.equal(await first.investors(1), accounts[3]);
-            assert.equal(await first.investors(2), accounts[4]);
-            assert.equal(await first.investors(3), accounts[5]);
-            assert.equal(await first.investors(4), accounts[6]);
-            assert.equal(await first.investors(5), accounts[7]);
-            assert.equal(+(await first.invested()), vs(225));
+        //     assert.equal(await first.investors(0), accounts[2]);
+        //     assert.equal(await first.investors(1), accounts[3]);
+        //     assert.equal(await first.investors(2), accounts[4]);
+        //     assert.equal(await first.investors(3), accounts[5]);
+        //     assert.equal(await first.investors(4), accounts[6]);
+        //     assert.equal(await first.investors(5), accounts[7]);
+        //     assert.equal(+(await first.invested()), vs(225));
 
-            balc2 = await web3.eth.getBalance(first.address);
+        //     balc2 = await web3.eth.getBalance(first.address);
             
-            await increaseTime(fduration+1);
+        //     await increaseTime(fduration+1);
 
-            await first.close({from: investOwner});
+        //     await first.close({from: investOwner});
 
-            assert.equal(+(await token.balanceOf(accounts[2])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[3])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[4])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[5])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[6])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[7])), 0);
+        //     assert.equal(+(await token.balanceOf(accounts[2])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[3])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[4])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[5])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[6])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[7])), 0);
 
-            balc3 = await web3.eth.getBalance(first.address);
-            bal1 = await web3.eth.getBalance(receiver);
+        //     balc3 = await web3.eth.getBalance(first.address);
+        //     bal1 = await web3.eth.getBalance(receiver);
 
-            assert.equal(balc1, 0);
-            assert.equal(balc3, 0);
+        //     assert.equal(balc1, 0);
+        //     assert.equal(balc3, 0);
 
-            await first.close({from: investOwner});
+        //     await first.close({from: investOwner});
 
-            bal1 = await web3.eth.getBalance(receiver);
-            balc3 = await web3.eth.getBalance(first.address);
+        //     bal1 = await web3.eth.getBalance(receiver);
+        //     balc3 = await web3.eth.getBalance(first.address);
 
-            assert.equal(+(await token.balanceOf(accounts[2])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[3])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[4])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[5])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[6])), vs(120000));
-            assert.equal(+(await token.balanceOf(accounts[7])), vs(75000));
+        //     assert.equal(+(await token.balanceOf(accounts[2])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[3])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[4])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[5])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[6])), vs(120000));
+        //     assert.equal(+(await token.balanceOf(accounts[7])), vs(75000));
 
-            assert.equal(balc3, 0);
-        });
+        //     assert.equal(balc3, 0);
+        // });
 
         // it('closing after sending tokens after first duration', async () => {
         //     balc1 = await web3.eth.getBalance(first.address);
@@ -251,5 +252,5 @@ contract('StageFirst\n\tstages.10\n', function (accounts) {
         //     assert.equal(balc1, 0);
         //     assert.equal(balc3, 0);
         // });
-    });
+    // });
 });

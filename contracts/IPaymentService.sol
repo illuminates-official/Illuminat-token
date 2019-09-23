@@ -7,8 +7,13 @@ interface IPaymentService {
     function unHeldBalanceOf(address _account) external view returns(uint);
 
     function currentHolders(uint index) external view returns(address);
-    function currentHoldersNumber() external view returns(uint);
+    function currentHoldersCount() external view returns(uint);
     function getHolderIndex(address account) external view returns(uint);
+
+    function heldBalancesTimesCountOf(address account) external view returns(uint);
+    function heldBalanceByTime(address account, uint time) external view returns(uint);
+    function heldBalanceByTime(uint time) external view returns(uint);
+    function heldBalancesTimesRecordOf(address account, uint index) external view returns(uint);
 
     function totalHeld() external view returns(uint);
 
