@@ -27,6 +27,11 @@ const increaseTime = function (duration) {
     });
 };
 
+const hour = 3600;
+const day = hour * 24;
+const decimals = 10**18;
+
+
 function v(value){
     return (value * decimals).toString();
 }
@@ -227,6 +232,98 @@ contract('PaymentService', function (accounts) {
 
             assert.equal(i1, 0);
             assert.equal(i2, 1);
+        });
+
+        it('unhold all balance', async () => {
+            tx1 = await ps.hold(vs(100), {from: accounts[4]});
+            tx2 = await ps.hold(vs(100), {from: accounts[5]});
+
+            ht1 = +(await ps.heldBalancesTimesRecordOf(accounts[4], 0));
+            ht2 = +(await ps.heldBalancesTimesRecordOf(accounts[5], 0));
+            hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
+            hb2 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[5], ht2));
+
+            assert.equal(hb1, vs(100));
+            assert.equal(hb2, vs(100));
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), vs(100));
+            assert.equal(+(await ps.heldBalanceOf(accounts[5])), vs(100));
+            assert.equal(+(await ps.totalHeld()), vs(200));
+
+            tx1 = await ps.methods["unHold()"]({from: accounts[4]});
+            tx2 = await ps.methods["unHold()"]({from: accounts[5]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), 0);
+            assert.equal(+(await ps.heldBalanceOf(accounts[5])), 0);
+            assert.equal(+(await ps.totalHeld()), 0);
+            assert.equal(+(await ps.heldBalancesTimesCountOf(accounts[4])), 0);
+            assert.equal(+(await ps.heldBalancesTimesCountOf(accounts[5])), 0);
+
+            hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
+            hb2 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[5], ht2));
+
+            assert.equal(hb1, 0);
+            assert.equal(hb2, 0);
+
+            truffleAssert.eventEmitted(tx1, 'Unhold', (ev) => {
+                return ev.account === accounts[4] && ev.amount == vs(100);
+            });
+
+            truffleAssert.eventEmitted(tx2, 'Unhold', (ev) => {
+                return ev.account === accounts[5] && ev.amount == vs(100);
+            });
+        });
+
+        it('unhold all balance, when account have some held balances in different time', async () => {
+            tx1 = await ps.hold(vs(100), {from: accounts[4]});
+
+            await increaseTime(day);
+
+            tx1 = await ps.hold(vs(200), {from: accounts[4]});
+
+            ht1 = +(await ps.heldBalancesTimesRecordOf(accounts[4], 0));
+            ht2 = +(await ps.heldBalancesTimesRecordOf(accounts[4], 1));
+            hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
+            hb2 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht2));
+
+            assert.equal(hb1, vs(100));
+            assert.equal(hb2, vs(200));
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), vs(300));
+            assert.equal(+(await ps.totalHeld()), vs(300));
+
+            tx1 = await ps.methods["unHold()"]({from: accounts[4]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), 0);
+            assert.equal(+(await ps.totalHeld()), 0);
+            assert.equal(+(await ps.heldBalancesTimesCountOf(accounts[4])), 0);
+
+            hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
+            hb2 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht2));
+
+            assert.equal(hb1, 0);
+            assert.equal(hb2, 0);
+        });
+
+        it('unhold specified amount of tokens', async () => {
+            tx1 = await ps.hold(vs(100), {from: accounts[4]});
+
+            await increaseTime(day);
+
+            ht1 = +(await ps.heldBalancesTimesRecordOf(accounts[4], 0));
+            hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
+
+            assert.equal(hb1, vs(100));
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), vs(100));
+            assert.equal(+(await ps.totalHeld()), vs(100));
+
+            tx1 = await ps.methods["unHold(uint256)"](vs(40), {from: accounts[4]});
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), vs(60));
+            assert.equal(+(await ps.totalHeld()), vs(60));
+            assert.equal(+(await ps.heldBalancesTimesCountOf(accounts[4])), 1);
+
+            hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
+
+            assert.equal(hb1, vs(60));
         });
     });
 });

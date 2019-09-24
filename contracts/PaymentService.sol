@@ -11,10 +11,14 @@ contract PaymentService is Ownable {
     IToken public token;
     IDeposit public deposit;
 
+    // total account's balance on contract
     mapping(address => uint) private _balances;
+    // held account's balance on contract
     mapping(address => uint) private _heldBalances;
+    // array of times of held balances
     mapping(address => uint[]) private _heldBalancesTimes;
-    mapping(address => mapping(uint => uint)) private _heldTime;
+    // held account's balance in specified point of time
+    mapping(address => mapping(uint => uint)) private _heldBalanceByTime;
 
     address[] private _currentHolders;
     uint private _totalHeld;
@@ -25,6 +29,8 @@ contract PaymentService is Ownable {
     event ServicePayment(address indexed _payer, address indexed _service, uint indexed _amount);
     event Hold(address indexed account, uint indexed amount, uint indexed time);
     event Unhold(address indexed account, uint indexed amount, uint indexed time);
+    event HolderRemove(address indexed account, uint indexed index, uint indexed holdersRemaining);
+    event HolderAdd(address indexed account, uint indexed index, uint indexed time);
 
     constructor() public {}
 
@@ -76,14 +82,16 @@ contract PaymentService is Ownable {
 
         uint currentTime = now;
 
+        if(_heldBalances[msg.sender] == 0) _currentHolders.push(msg.sender);
+
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
-        _heldTime[msg.sender][currentTime] = amount;
+        _heldBalanceByTime[msg.sender][currentTime] = amount;
 
         _heldBalancesTimes[msg.sender].push(currentTime);
-        _currentHolders.push(msg.sender);
         _totalHeld = _totalHeld.add(amount);
 
         emit Hold(msg.sender, amount, currentTime);
+        emit HolderAdd(msg.sender, currentHoldersCount().sub(1), currentTime);
     }
     // try to unhold all and re-hold diff
     function unHold(uint amount) public {
@@ -97,30 +105,33 @@ contract PaymentService is Ownable {
 
         _totalHeld = _totalHeld.sub(amount);
 
-        if(_heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)] >= amount){
-            _heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)] = _heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)].sub(amount);
+        uint lastHeldTime = _heldBalancesTimes[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)];
 
-            emit Unhold(msg.sender, amount, heldBalancesTimesCountOf(msg.sender).sub(1));
+        if(_heldBalanceByTime[msg.sender][lastHeldTime] >= amount){
+            _heldBalanceByTime[msg.sender][lastHeldTime] = (_heldBalanceByTime[msg.sender][lastHeldTime]).sub(amount);
 
-            if(_heldTime[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)] == amount) _heldBalancesTimes[msg.sender].pop();
+            emit Unhold(msg.sender, amount, lastHeldTime);
+
+            if(_heldBalanceByTime[msg.sender][lastHeldTime] == amount) _heldBalancesTimes[msg.sender].pop();
         } else {
             uint remaining = amount;
-            for(uint i = heldBalancesTimesCountOf(msg.sender).sub(1); i > 0; i--){
-                if(remaining >= _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]]) {
-                    remaining = remaining.sub(_heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]]);
+            for(uint i = lastHeldTime; i > 0; i--){
+                uint curTimeBalance = _heldBalancesTimes[msg.sender][i];
 
-                    emit Unhold(msg.sender, _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]], _heldBalancesTimes[msg.sender][i]);
+                if(remaining >= _heldBalanceByTime[msg.sender][curTimeBalance]) {
+                    remaining = remaining.sub(_heldBalanceByTime[msg.sender][curTimeBalance]);
 
-                    _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]] = 0;
+                    emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][curTimeBalance], curTimeBalance);
+
+                    _heldBalanceByTime[msg.sender][curTimeBalance] = 0;
                     _heldBalancesTimes[msg.sender].pop();
                 } else if (remaining == 0) {
                     return;
                 } else {
-                    _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]] = _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]].sub(remaining);
+                    _heldBalanceByTime[msg.sender][curTimeBalance] = _heldBalanceByTime[msg.sender][curTimeBalance].sub(remaining);
 
-                    emit Unhold(msg.sender, remaining, _heldBalancesTimes[msg.sender][i]);
+                    emit Unhold(msg.sender, remaining, curTimeBalance);
 
-                    // remaining = 0;
                     return;
                 }
             }
@@ -128,13 +139,22 @@ contract PaymentService is Ownable {
     }
 
     function unHold() public {
-        _totalHeld = _totalHeld.sub(_heldBalances[msg.sender]);
+        uint heldBalance = _heldBalances[msg.sender];
+        _totalHeld = _totalHeld.sub(heldBalance);
         _heldBalances[msg.sender] = 0;
 
-        for(uint i = heldBalancesTimesCountOf(msg.sender).sub(1); i > 0; i--){
-            _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]] = 0;
+        if(heldBalancesTimesCountOf(msg.sender).sub(1) > 0){
+            for(int i = int(heldBalancesTimesCountOf(msg.sender).sub(1)); i >= 0; i--){
+                emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][uint(i)]], _heldBalancesTimes[msg.sender][uint(i)]);
+                _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][uint(i)]] = 0;
+                _heldBalancesTimes[msg.sender].pop();
+            }
+        } else {
+            emit Unhold(msg.sender, heldBalance, _heldBalancesTimes[msg.sender][0]);
+            _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][0]] = 0;
             _heldBalancesTimes[msg.sender].pop();
         }
+
         _removeHolder(getHolderIndex(msg.sender));
     }
 
@@ -173,13 +193,13 @@ contract PaymentService is Ownable {
     returns balance of @param account by @param time
      */
     function heldBalanceByTime(address account, uint time) public view returns(uint) {
-        return _heldTime[account][time];
+        return _heldBalanceByTime[account][time];
     }
     /**
     returns balance of msg.sender by @param time
      */
     function heldBalanceByTime(uint time) public view returns(uint) {
-        return _heldTime[msg.sender][time];
+        return _heldBalanceByTime[msg.sender][time];
     }
 
     function currentHoldersCount() public view returns(uint) {
@@ -207,6 +227,8 @@ contract PaymentService is Ownable {
 
     function _removeHolder(uint index) private {
         require(index <= currentHoldersCount(), "Holder not found");
+
+        emit HolderRemove(_currentHolders[index], index, currentHoldersCount().sub(1));
 
         for (uint i = index; i < currentHoldersCount().sub(1); i++)
             _currentHolders[i] = _currentHolders[i.add(1)];
