@@ -85,7 +85,7 @@ contract PaymentService is Ownable {
 
         emit Hold(msg.sender, amount, currentTime);
     }
-
+    // try to unhold all and re-hold diff
     function unHold(uint amount) public {
         require(amount <= _heldBalances[msg.sender], "Not enough held balance on payment service contract");
 
@@ -117,6 +117,9 @@ contract PaymentService is Ownable {
                     return;
                 } else {
                     _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]] = _heldTime[msg.sender][_heldBalancesTimes[msg.sender][i]].sub(remaining);
+
+                    emit Unhold(msg.sender, remaining, _heldBalancesTimes[msg.sender][i]);
+
                     // remaining = 0;
                     return;
                 }
@@ -156,19 +159,25 @@ contract PaymentService is Ownable {
     function currentHolders(uint index) public view returns(address) {
         return _currentHolders[index];
     }
-
+    /**
+    returns array of @param account times of holding balance */
     function heldBalancesTimesOf(address account) public view returns(uint[] memory) {
         return _heldBalancesTimes[account];
     }
-
+    /**
+    returns time of @param account held balance by @param index */
     function heldBalancesTimesRecordOf(address account, uint index) public view returns(uint) {
         return _heldBalancesTimes[account][index];
     }
-
+    /**
+    returns balance of @param account by @param time
+     */
     function heldBalanceByTime(address account, uint time) public view returns(uint) {
         return _heldTime[account][time];
     }
-
+    /**
+    returns balance of msg.sender by @param time
+     */
     function heldBalanceByTime(uint time) public view returns(uint) {
         return _heldTime[msg.sender][time];
     }
@@ -185,15 +194,15 @@ contract PaymentService is Ownable {
         return _totalHeld;
     }
 
-    function _transfer(address to, uint amount) private {
-        token.transfer(to, amount);
-    }
-
     function getHolderIndex(address account) public view returns(uint) {
         for (uint i = 0; i < _currentHolders.length; i++)
             if(_currentHolders[i] == account)
                 return i;
         revert("Holder not found");
+    }
+
+    function _transfer(address to, uint amount) private {
+        token.transfer(to, amount);
     }
 
     function _removeHolder(uint index) private {
