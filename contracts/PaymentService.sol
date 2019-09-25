@@ -52,28 +52,35 @@ contract PaymentService is Ownable {
 
     function transfer(address to, uint amount) public {
         require(amount <= _balances[msg.sender].sub(_heldBalances[msg.sender]), "Not enough unhold tokens");
+
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         _balances[to] = _balances[to].add(amount);
+
         emit DepositTransfer(msg.sender, to, amount);
     }
 
     function replenishBalance(uint amount) public {
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         token.transferFrom(msg.sender, address(this), amount);
+
         emit Replenish(msg.sender, amount);
     }
 
     function withdraw() public {
         uint balance = _balances[msg.sender].sub(_heldBalances[msg.sender]);
+
         _balances[msg.sender] = _heldBalances[msg.sender];
         _transfer(msg.sender, balance);
+
         emit Withdrawal(msg.sender, balance);
     }
 
     function withdraw(uint amount) public {
         require(amount <= _balances[msg.sender].sub(_heldBalances[msg.sender]), "Not enough unhold tokens");
+
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         _transfer(msg.sender, amount);
+
         emit Withdrawal(msg.sender, amount);
     }
 
@@ -82,7 +89,8 @@ contract PaymentService is Ownable {
 
         uint currentTime = now;
 
-        if(_heldBalances[msg.sender] == 0) _currentHolders.push(msg.sender);
+        if(_heldBalances[msg.sender] == 0)
+            _currentHolders.push(msg.sender);
 
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
         _heldBalanceByTime[msg.sender][currentTime] = amount;
@@ -99,36 +107,38 @@ contract PaymentService is Ownable {
 
         _heldBalances[msg.sender] = _heldBalances[msg.sender].sub(amount);
 
-        if(_heldBalances[msg.sender] == 0) {
+        if(_heldBalances[msg.sender] == 0)
             _removeHolder(getHolderIndex(msg.sender));
-        }
 
         _totalHeld = _totalHeld.sub(amount);
 
-        uint lastHeldTime = _heldBalancesTimes[msg.sender][heldBalancesTimesCountOf(msg.sender).sub(1)];
+        uint lastIndexOfTime = heldBalancesTimesCountOf(msg.sender).sub(1);
+        uint lastHeldTime = _heldBalancesTimes[msg.sender][lastIndexOfTime];
+
+        if(_heldBalanceByTime[msg.sender][lastHeldTime] == amount)
+            _heldBalancesTimes[msg.sender].pop();
 
         if(_heldBalanceByTime[msg.sender][lastHeldTime] >= amount){
-            _heldBalanceByTime[msg.sender][lastHeldTime] = (_heldBalanceByTime[msg.sender][lastHeldTime]).sub(amount);
+            _heldBalanceByTime[msg.sender][lastHeldTime] = _heldBalanceByTime[msg.sender][lastHeldTime].sub(amount);
 
             emit Unhold(msg.sender, amount, lastHeldTime);
-
-            if(_heldBalanceByTime[msg.sender][lastHeldTime] == amount) _heldBalancesTimes[msg.sender].pop();
         } else {
             uint remaining = amount;
-            for(uint i = lastHeldTime; i > 0; i--){
-                uint curTimeBalance = _heldBalancesTimes[msg.sender][i];
 
-                if(remaining >= _heldBalanceByTime[msg.sender][curTimeBalance]) {
-                    remaining = remaining.sub(_heldBalanceByTime[msg.sender][curTimeBalance]);
+            for(int i = int(lastIndexOfTime); i >= 0; i--){
+                uint curTimeBalance = _heldBalancesTimes[msg.sender][uint(i)];
+                uint balance = _heldBalanceByTime[msg.sender][curTimeBalance];
 
-                    emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][curTimeBalance], curTimeBalance);
-
-                    _heldBalanceByTime[msg.sender][curTimeBalance] = 0;
+                if(remaining >= balance) {
+                    remaining = remaining.sub(balance);
                     _heldBalancesTimes[msg.sender].pop();
+                    _heldBalanceByTime[msg.sender][curTimeBalance] = 0;
+
+                    emit Unhold(msg.sender, balance, curTimeBalance);
                 } else if (remaining == 0) {
                     return;
                 } else {
-                    _heldBalanceByTime[msg.sender][curTimeBalance] = _heldBalanceByTime[msg.sender][curTimeBalance].sub(remaining);
+                    _heldBalanceByTime[msg.sender][curTimeBalance] = balance.sub(remaining);
 
                     emit Unhold(msg.sender, remaining, curTimeBalance);
 
@@ -140,17 +150,20 @@ contract PaymentService is Ownable {
 
     function unHold() public {
         uint heldBalance = _heldBalances[msg.sender];
+
         _totalHeld = _totalHeld.sub(heldBalance);
         _heldBalances[msg.sender] = 0;
 
-        if(heldBalancesTimesCountOf(msg.sender).sub(1) > 0){
+        if(heldBalancesTimesCountOf(msg.sender).sub(1) > 0) {
             for(int i = int(heldBalancesTimesCountOf(msg.sender).sub(1)); i >= 0; i--){
                 emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][uint(i)]], _heldBalancesTimes[msg.sender][uint(i)]);
+
                 _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][uint(i)]] = 0;
                 _heldBalancesTimes[msg.sender].pop();
             }
         } else {
             emit Unhold(msg.sender, heldBalance, _heldBalancesTimes[msg.sender][0]);
+
             _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][0]] = 0;
             _heldBalancesTimes[msg.sender].pop();
         }
@@ -161,6 +174,7 @@ contract PaymentService is Ownable {
     function payService(string memory service, address _to, uint amount) public {
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         token.payService(service, _to, amount);
+
         emit ServicePayment(msg.sender, _to, amount);
     }
 
@@ -218,6 +232,7 @@ contract PaymentService is Ownable {
         for (uint i = 0; i < _currentHolders.length; i++)
             if(_currentHolders[i] == account)
                 return i;
+
         revert("Holder not found");
     }
 
