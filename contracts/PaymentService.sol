@@ -16,7 +16,7 @@ contract PaymentService is Ownable {
     // held account's balance on contract
     mapping(address => uint) private _heldBalances;
     // array of times of held balances
-    mapping(address => uint[]) private _heldBalancesTimes;
+    mapping(address => uint[]) private _heldBalancesTimesArray;
     // held account's balance in specified point of time
     mapping(address => mapping(uint => uint)) private _heldBalanceByTime;
 
@@ -95,7 +95,7 @@ contract PaymentService is Ownable {
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
         _heldBalanceByTime[msg.sender][currentTime] = amount;
 
-        _heldBalancesTimes[msg.sender].push(currentTime);
+        _heldBalancesTimesArray[msg.sender].push(currentTime);
         _totalHeld = _totalHeld.add(amount);
 
         emit Hold(msg.sender, amount, currentTime);
@@ -113,10 +113,10 @@ contract PaymentService is Ownable {
         _totalHeld = _totalHeld.sub(amount);
 
         uint lastIndexOfTime = heldBalancesTimesCountOf(msg.sender).sub(1);
-        uint lastHeldTime = _heldBalancesTimes[msg.sender][lastIndexOfTime];
+        uint lastHeldTime = _heldBalancesTimesArray[msg.sender][lastIndexOfTime];
 
         if(_heldBalanceByTime[msg.sender][lastHeldTime] == amount)
-            _heldBalancesTimes[msg.sender].pop();
+            _heldBalancesTimesArray[msg.sender].pop();
 
         if(_heldBalanceByTime[msg.sender][lastHeldTime] >= amount){
             _heldBalanceByTime[msg.sender][lastHeldTime] = _heldBalanceByTime[msg.sender][lastHeldTime].sub(amount);
@@ -126,12 +126,12 @@ contract PaymentService is Ownable {
             uint remaining = amount;
 
             for(int i = int(lastIndexOfTime); i >= 0; i--){
-                uint curTimeBalance = _heldBalancesTimes[msg.sender][uint(i)];
+                uint curTimeBalance = _heldBalancesTimesArray[msg.sender][uint(i)];
                 uint balance = _heldBalanceByTime[msg.sender][curTimeBalance];
 
                 if(remaining >= balance) {
                     remaining = remaining.sub(balance);
-                    _heldBalancesTimes[msg.sender].pop();
+                    _heldBalancesTimesArray[msg.sender].pop();
                     _heldBalanceByTime[msg.sender][curTimeBalance] = 0;
 
                     emit Unhold(msg.sender, balance, curTimeBalance);
@@ -156,16 +156,16 @@ contract PaymentService is Ownable {
 
         if(heldBalancesTimesCountOf(msg.sender).sub(1) > 0) {
             for(int i = int(heldBalancesTimesCountOf(msg.sender).sub(1)); i >= 0; i--){
-                emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][uint(i)]], _heldBalancesTimes[msg.sender][uint(i)]);
+                emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][_heldBalancesTimesArray[msg.sender][uint(i)]], _heldBalancesTimesArray[msg.sender][uint(i)]);
 
-                _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][uint(i)]] = 0;
-                _heldBalancesTimes[msg.sender].pop();
+                _heldBalanceByTime[msg.sender][_heldBalancesTimesArray[msg.sender][uint(i)]] = 0;
+                _heldBalancesTimesArray[msg.sender].pop();
             }
         } else {
-            emit Unhold(msg.sender, heldBalance, _heldBalancesTimes[msg.sender][0]);
+            emit Unhold(msg.sender, heldBalance, _heldBalancesTimesArray[msg.sender][0]);
 
-            _heldBalanceByTime[msg.sender][_heldBalancesTimes[msg.sender][0]] = 0;
-            _heldBalancesTimes[msg.sender].pop();
+            _heldBalanceByTime[msg.sender][_heldBalancesTimesArray[msg.sender][0]] = 0;
+            _heldBalancesTimesArray[msg.sender].pop();
         }
 
         _removeHolder(getHolderIndex(msg.sender));
@@ -196,12 +196,12 @@ contract PaymentService is Ownable {
     /**
     returns array of @param account times of holding balance */
     function heldBalancesTimesOf(address account) public view returns(uint[] memory) {
-        return _heldBalancesTimes[account];
+        return _heldBalancesTimesArray[account];
     }
     /**
     returns time of @param account held balance by @param index */
     function heldBalancesTimesRecordOf(address account, uint index) public view returns(uint) {
-        return _heldBalancesTimes[account][index];
+        return _heldBalancesTimesArray[account][index];
     }
     /**
     returns balance of @param account by @param time
@@ -221,7 +221,7 @@ contract PaymentService is Ownable {
     }
 
     function heldBalancesTimesCountOf(address account) public view returns(uint) {
-        return _heldBalancesTimes[account].length;
+        return _heldBalancesTimesArray[account].length;
     }
 
     function totalHeld() public view returns(uint) {
@@ -251,12 +251,12 @@ contract PaymentService is Ownable {
         _currentHolders.pop();
     }
 
-    function _removeHoldTime(address account, uint index) private {
-        require(index <= heldBalancesTimesCountOf(account), "Time record not found");
+    // function _removeHoldTime(address account, uint index) private {
+    //     require(index <= heldBalancesTimesCountOf(account), "Time record not found");
 
-        for (uint i = index; i < heldBalancesTimesCountOf(account).sub(1); i++)
-            _heldBalancesTimes[account][i] = _heldBalancesTimes[account][i.add(1)];
+    //     for (uint i = index; i < heldBalancesTimesCountOf(account).sub(1); i++)
+    //         _heldBalancesTimesArray[account][i] = _heldBalancesTimesArray[account][i.add(1)];
 
-        _heldBalancesTimes[account].pop();
-    }
+    //     _heldBalancesTimesArray[account].pop();
+    // }
 }
