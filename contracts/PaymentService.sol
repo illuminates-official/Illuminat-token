@@ -101,7 +101,7 @@ contract PaymentService is Ownable {
         emit Hold(msg.sender, amount, currentTime);
         emit HolderAdd(msg.sender, currentHoldersCount().sub(1), currentTime);
     }
-    // try to unhold all and re-hold diff
+
     function unHold(uint amount) public {
         require(amount <= _heldBalances[msg.sender], "Not enough held balance on payment service contract");
 
