@@ -182,6 +182,33 @@ contract('PaymentService', function (accounts) {
             assert.equal(+(await token.balanceOf(await token.owner())), vs(80));
             assert.equal(+(await token.totalSupply()), vs(99999990));
         });
+
+        it('80% after transfer ownership', async () => {
+            await ps.replenishBalance(vs(10000), {from: accounts[5]});
+            assert.equal(+(await ps.balanceOf(accounts[5])), vs(10000));
+
+            await ps.payService("test", vs(100), {from: accounts[5]});
+
+            assert.equal(+(await ps.balanceOf(accounts[5])), vs(9900));
+            assert.equal(+(await token.balanceOf(ps.address)), vs(9900));
+            assert.equal(+(await token.balanceOf(deposit.address)), vs(10));
+            assert.equal(+(await token.balanceOf(tokenOwner)), vs(80));
+            assert.equal(+(await token.balanceOf(accounts[9])), 0);
+            assert.equal(+(await token.balanceOf(await token.owner())), vs(80));
+            assert.equal(+(await token.totalSupply()), vs(99999990));
+
+            await token.transferOwnership(accounts[9], {from: tokenOwner});
+            
+            await ps.payService("test", vs(100), {from: accounts[5]});
+
+            assert.equal(+(await ps.balanceOf(accounts[5])), vs(9800));
+            assert.equal(+(await token.balanceOf(ps.address)), vs(9800));
+            assert.equal(+(await token.balanceOf(deposit.address)), vs(20));
+            assert.equal(+(await token.balanceOf(tokenOwner)), vs(80));
+            assert.equal(+(await token.balanceOf(accounts[9])), vs(80));
+            assert.equal(+(await token.balanceOf(await token.owner())), vs(80));
+            assert.equal(+(await token.totalSupply()), vs(99999980));
+        });
     });
 
     describe('Held balance and time for helding', async () => {
@@ -515,7 +542,7 @@ contract('PaymentService', function (accounts) {
 
             assert.equal(hb1, 0);
         });
-
+        // works only if fast
         it('try to make 2 holds in same time', async () => {
             await ps.hold(vs(100), {from: accounts[4]});
 
