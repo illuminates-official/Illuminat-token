@@ -6,7 +6,8 @@ import "./SafeMath.sol";
 import "./Ownable.sol";
 
 contract PaymentService is Ownable {
-    using SafeMath for uint256;
+    using SafeMath
+    for uint256;
 
     IToken public token;
     IDeposit public deposit;
@@ -34,7 +35,7 @@ contract PaymentService is Ownable {
 
     constructor() public {}
 
-    function() external {
+    function () external {
         revert();
     }
 
@@ -89,7 +90,7 @@ contract PaymentService is Ownable {
 
         uint currentTime = now;
 
-        if(_heldBalances[msg.sender] == 0)
+        if (_heldBalances[msg.sender] == 0)
             _currentHolders.push(msg.sender);
 
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
@@ -107,7 +108,7 @@ contract PaymentService is Ownable {
 
         _heldBalances[msg.sender] = _heldBalances[msg.sender].sub(amount);
 
-        if(_heldBalances[msg.sender] == 0)
+        if (_heldBalances[msg.sender] == 0)
             _removeHolder(getHolderIndex(msg.sender));
 
         _totalHeld = _totalHeld.sub(amount);
@@ -115,21 +116,21 @@ contract PaymentService is Ownable {
         uint lastIndexOfTime = heldBalancesTimesCountOf(msg.sender).sub(1);
         uint lastHeldTime = _heldBalancesTimesArray[msg.sender][lastIndexOfTime];
 
-        if(_heldBalanceByTime[msg.sender][lastHeldTime] == amount)
+        if (_heldBalanceByTime[msg.sender][lastHeldTime] == amount)
             _heldBalancesTimesArray[msg.sender].pop();
 
-        if(_heldBalanceByTime[msg.sender][lastHeldTime] >= amount){
+        if (_heldBalanceByTime[msg.sender][lastHeldTime] >= amount) {
             _heldBalanceByTime[msg.sender][lastHeldTime] = _heldBalanceByTime[msg.sender][lastHeldTime].sub(amount);
 
             emit Unhold(msg.sender, amount, lastHeldTime);
         } else {
             uint remaining = amount;
 
-            for(int i = int(lastIndexOfTime); i >= 0; i--){
+            for (int i = int(lastIndexOfTime); i >= 0; i--) {
                 uint curTimeBalance = _heldBalancesTimesArray[msg.sender][uint(i)];
                 uint balance = _heldBalanceByTime[msg.sender][curTimeBalance];
 
-                if(remaining >= balance) {
+                if (remaining >= balance) {
                     remaining = remaining.sub(balance);
                     _heldBalancesTimesArray[msg.sender].pop();
                     _heldBalanceByTime[msg.sender][curTimeBalance] = 0;
@@ -154,8 +155,8 @@ contract PaymentService is Ownable {
         _totalHeld = _totalHeld.sub(heldBalance);
         _heldBalances[msg.sender] = 0;
 
-        if(heldBalancesTimesCountOf(msg.sender).sub(1) > 0) {
-            for(int i = int(heldBalancesTimesCountOf(msg.sender).sub(1)); i >= 0; i--){
+        if (heldBalancesTimesCountOf(msg.sender).sub(1) > 0) {
+            for (int i = int(heldBalancesTimesCountOf(msg.sender).sub(1)); i >= 0; i--) {
                 emit Unhold(msg.sender, _heldBalanceByTime[msg.sender][_heldBalancesTimesArray[msg.sender][uint(i)]], _heldBalancesTimesArray[msg.sender][uint(i)]);
 
                 _heldBalanceByTime[msg.sender][_heldBalancesTimesArray[msg.sender][uint(i)]] = 0;
@@ -230,7 +231,7 @@ contract PaymentService is Ownable {
 
     function getHolderIndex(address account) public view returns(uint) {
         for (uint i = 0; i < _currentHolders.length; i++)
-            if(_currentHolders[i] == account)
+            if (_currentHolders[i] == account)
                 return i;
 
         revert("Holder not found");
