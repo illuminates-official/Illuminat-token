@@ -3,7 +3,6 @@ pragma solidity ^0.5.11;
 import "./IERC20.sol";
 import "./SafeMath.sol";
 
-
 contract ERC20 is IERC20 {
     using SafeMath for uint256;
 
