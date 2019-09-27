@@ -15,6 +15,9 @@ contract Deposit is Ownable {
     uint public accuracy;
     mapping(address => uint) private _lastDistributionPeriod;
 
+    event ValidTotalHeldBalance(uint indexed amount, uint indexed time);
+    event Distribution(address indexed receiver, uint indexed amount, uint indexed time);
+
     constructor() public {
         deployTime = now;
         accuracy = 10 ** 12;
@@ -52,6 +55,8 @@ contract Deposit is Ownable {
         uint currentBalance = balance();
         uint validTotalHeldBalance = validTotalHeld(now);
 
+        emit ValidTotalHeldBalance(validTotalHeldBalance, now);
+
         for (uint i = 0; i < holdersCount; i++) {
             address holder = currentHolders(i);
             uint holds = heldBalancesTimesCountOf(holder);
@@ -69,14 +74,15 @@ contract Deposit is Ownable {
                             _lastDistributionPeriod[holder] = period;
                             uint amount = currentBalance.mul((validHold.mul(accuracy)).div(validTotalHeldBalance)).div(accuracy);
                             _transfer(holder, amount);
+                            emit Distribution(holder, amount, now);
                         }
                     } else {
+                        uint validHold;
                         uint difference = period.sub(lastDistribution);
                         uint longestHold = heldBalancesTimesRecordOf(holder, 0);
                         uint periods = (now.sub(longestHold)).div(30 days);
                         uint notPaidPeriods = periods.sub(lastDistribution);
                         if (longestHold <= now.sub((difference.sub(1)).mul(30 days))) {
-                            uint validHold;
                             for (uint j = 0; j < holds; j++) {
                                 uint time = heldBalancesTimesRecordOf(holder, j);
                                 periods = (now.sub(time)).div(30 days);
@@ -84,11 +90,19 @@ contract Deposit is Ownable {
                                 if (notPaidPeriods > 0)
                                     validHold = validHold.add(heldBalanceByTime(holder, time));
                             }
-                            if (validHold > 0) {
-                                _lastDistributionPeriod[holder] = period;
-                                uint amount = currentBalance.mul((validHold.mul(accuracy)).div(validTotalHeldBalance)).div(accuracy);
-                                _transfer(holder, amount);
+                        } else if (periods > 0) {
+                            uint time;
+                            for (uint j = 0; j < holds; j++) {
+                                time = heldBalancesTimesRecordOf(holder, j);
+                                if (periods > 0)
+                                    validHold = validHold.add(heldBalanceByTime(holder, time));
                             }
+                        }
+                        if (validHold > 0) {
+                            _lastDistributionPeriod[holder] = period;
+                            uint amount = currentBalance.mul((validHold.mul(accuracy)).div(validTotalHeldBalance)).div(accuracy);
+                            _transfer(holder, amount);
+                            emit Distribution(holder, amount, now);
                         }
                     }
                 }

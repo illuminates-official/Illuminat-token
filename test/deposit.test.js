@@ -76,7 +76,7 @@ contract('Deposit', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[4])), vs(90000));
             assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[4]});
+            await ps.payService("test", vs(100), {from: accounts[4]});
 
             await increaseTime(30*day);
 
@@ -93,7 +93,7 @@ contract('Deposit', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[4])), vs(90000));
             assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[4]});
+            await ps.payService("test", vs(100), {from: accounts[4]});
 
             await increaseTime(30*day);
             
@@ -109,23 +109,26 @@ contract('Deposit', function (accounts) {
         it('distribution, few holds, some valid', async () => {
             await ps.hold(vs(100), {from: accounts[4]});
             await ps.hold(vs(100), {from: accounts[5]});
+
+            await increaseTime(1*day);
+
             await ps.hold(vs(150), {from: accounts[4]});
             await ps.hold(vs(120), {from: accounts[5]});
 
             assert.equal(+(await token.balanceOf(accounts[4])), vs(90000));
             assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[4]});
+            await ps.payService("test", vs(100), {from: accounts[4]});
 
-            await increaseTime(30*day);
+            await increaseTime(33*day);
 
             await ps.hold(vs(200), {from: accounts[4]});
             await ps.hold(vs(300), {from: accounts[5]});
 
             await deposit.distribute();
 
-            assert.equal(+(await token.balanceOf(accounts[4])), 9.000555555555555e+22);
-            assert.equal(+(await token.balanceOf(accounts[5])), 9.000444444444444e+22);
+            assert.equal(+(await token.balanceOf(accounts[4])), 9.000531914893617e+22);
+            assert.equal(+(await token.balanceOf(accounts[5])), 9.000468085106382e+22);
         });
 
         it('distribution, few holds, some valid, some service payment', async () => {
@@ -154,9 +157,9 @@ contract('Deposit', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[6])), vs(90000));
             assert.equal(+(await token.balanceOf(accounts[7])), vs(90000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[4]});
-            await ps.payService("test", service, vs(150), {from: accounts[4]});
-            await ps.payService("test", service, vs(200), {from: accounts[6]});
+            await ps.payService("test", vs(100), {from: accounts[4]});
+            await ps.payService("test", vs(150), {from: accounts[4]});
+            await ps.payService("test", vs(200), {from: accounts[6]});
 
             await increaseTime(30*day);
 
@@ -197,9 +200,9 @@ contract('Deposit', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[6])), vs(90000));
             assert.equal(+(await token.balanceOf(accounts[7])), vs(90000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[4]});
-            await ps.payService("test", service, vs(150), {from: accounts[4]});
-            await ps.payService("test", service, vs(200), {from: accounts[6]});
+            await ps.payService("test", vs(100), {from: accounts[4]});
+            await ps.payService("test", vs(150), {from: accounts[4]});
+            await ps.payService("test", vs(200), {from: accounts[6]});
 
             await increaseTime(91*day);
 
@@ -240,12 +243,12 @@ contract('Deposit', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[6])), vs(90000));
             assert.equal(+(await token.balanceOf(accounts[7])), vs(90000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[4]});
+            await ps.payService("test", vs(100), {from: accounts[4]});
 
             await increaseTime(61*day);
 
-            await ps.payService("test", service, vs(150), {from: accounts[4]});
-            await ps.payService("test", service, vs(200), {from: accounts[6]});
+            await ps.payService("test", vs(150), {from: accounts[4]});
+            await ps.payService("test", vs(200), {from: accounts[6]});
 
             await increaseTime(91*day);
 
@@ -260,5 +263,42 @@ contract('Deposit', function (accounts) {
             assert.equal(+(await token.balanceOf(accounts[7])), 9.001431818181814e+22);
         });
 
+        it('distribution, hold after some periods', async () => {
+            await increaseTime(91*day);
+
+            await ps.hold(vs(100), {from: accounts[4]});
+            await ps.hold(vs(100), {from: accounts[5]});
+
+            assert.equal(+(await token.balanceOf(accounts[4])), vs(90000));
+            assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
+
+            await ps.payService("test", vs(100), {from: accounts[4]});
+
+            await increaseTime(31*day);
+
+            await deposit.distribute();
+
+            assert.equal(+(await token.balanceOf(accounts[4])), vs(90005));
+            assert.equal(+(await token.balanceOf(accounts[5])), vs(90005));
+        });
+
+        it('distribution, after some periods, hold after some periods', async () => {
+            await increaseTime(91*day);
+
+            await ps.hold(vs(100), {from: accounts[4]});
+            await ps.hold(vs(100), {from: accounts[5]});
+
+            assert.equal(+(await token.balanceOf(accounts[4])), vs(90000));
+            assert.equal(+(await token.balanceOf(accounts[5])), vs(90000));
+
+            await ps.payService("test", vs(100), {from: accounts[4]});
+
+            await increaseTime(61*day);
+
+            await deposit.distribute();
+
+            assert.equal(+(await token.balanceOf(accounts[4])), vs(90005));
+            assert.equal(+(await token.balanceOf(accounts[5])), vs(90005));
+        });
     });
 });

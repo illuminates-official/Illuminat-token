@@ -1,16 +1,15 @@
 pragma solidity ^0.5.11;
 
 import "./IToken.sol";
-import "./IDeposit.sol";
+import "./IPaymentService.sol";
 import "./SafeMath.sol";
 import "./Ownable.sol";
 
-contract PaymentService is Ownable {
+contract PaymentService is IPaymentService, Ownable {
     using SafeMath
     for uint256;
 
     IToken public token;
-    IDeposit public deposit;
 
     // total account's balance on contract
     mapping(address => uint) private _balances;
@@ -26,7 +25,7 @@ contract PaymentService is Ownable {
 
     event Replenish(address indexed _account, uint indexed _amount);
     event Withdrawal(address indexed _account, uint indexed _amount);
-    event DepositTransfer(address indexed _from, address indexed _to, uint indexed _amount);
+    event PaymentServiceTransfer(address indexed _from, address indexed _to, uint indexed _amount);
     event ServicePayment(address indexed _payer, address indexed _service, uint indexed _amount);
     event Hold(address indexed account, uint indexed amount, uint indexed time);
     event Unhold(address indexed account, uint indexed amount, uint indexed time);
@@ -43,10 +42,6 @@ contract PaymentService is Ownable {
         token = IToken(_token);
     }
 
-    function setDeposit(address _deposit) public onlyOwner {
-        deposit = IDeposit(_deposit);
-    }
-
     function _serviceTransfer(address to, uint amount) public onlyOwner {
         _transfer(to, amount);
     }
@@ -57,7 +52,7 @@ contract PaymentService is Ownable {
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         _balances[to] = _balances[to].add(amount);
 
-        emit DepositTransfer(msg.sender, to, amount);
+        emit PaymentServiceTransfer(msg.sender, to, amount);
     }
 
     function replenishBalance(uint amount) public {
@@ -95,6 +90,10 @@ contract PaymentService is Ownable {
 
         _heldBalances[msg.sender] = _heldBalances[msg.sender].add(amount);
         _heldBalanceByTime[msg.sender][currentTime] = amount;
+
+        for (uint i = 0; i < _heldBalancesTimesArray[msg.sender].length; i++)
+            if (_heldBalancesTimesArray[msg.sender][i] == currentTime)
+                revert("Time point already occupied");
 
         _heldBalancesTimesArray[msg.sender].push(currentTime);
         _totalHeld = _totalHeld.add(amount);
@@ -140,9 +139,7 @@ contract PaymentService is Ownable {
                     return;
                 } else {
                     _heldBalanceByTime[msg.sender][curTimeBalance] = balance.sub(remaining);
-
                     emit Unhold(msg.sender, remaining, curTimeBalance);
-
                     return;
                 }
             }
@@ -172,11 +169,11 @@ contract PaymentService is Ownable {
         _removeHolder(getHolderIndex(msg.sender));
     }
 
-    function payService(string memory service, address _to, uint amount) public {
+    function payService(string memory service, uint amount) public {
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        token.payService(service, _to, amount);
+        token.payService(service, token.owner(), amount);
 
-        emit ServicePayment(msg.sender, _to, amount);
+        emit ServicePayment(msg.sender, token.owner(), amount);
     }
 
     function balanceOf(address _account) public view returns(uint) {
@@ -251,13 +248,4 @@ contract PaymentService is Ownable {
 
         _currentHolders.pop();
     }
-
-    // function _removeHoldTime(address account, uint index) private {
-    //     require(index <= heldBalancesTimesCountOf(account), "Time record not found");
-
-    //     for (uint i = index; i < heldBalancesTimesCountOf(account).sub(1); i++)
-    //         _heldBalancesTimesArray[account][i] = _heldBalancesTimesArray[account][i.add(1)];
-
-    //     _heldBalancesTimesArray[account].pop();
-    // }
 }

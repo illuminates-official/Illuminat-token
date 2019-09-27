@@ -174,11 +174,12 @@ contract('PaymentService', function (accounts) {
             await ps.replenishBalance(vs(10000), {from: accounts[5]});
             assert.equal(+(await ps.balanceOf(accounts[5])), vs(10000));
 
-            await ps.payService("test", service, vs(100), {from: accounts[5]});
+            await ps.payService("test", vs(100), {from: accounts[5]});
 
             assert.equal(+(await ps.balanceOf(accounts[5])), vs(9900));
             assert.equal(+(await token.balanceOf(ps.address)), vs(9900));
             assert.equal(+(await token.balanceOf(deposit.address)), vs(10));
+            assert.equal(+(await token.balanceOf(await token.owner())), vs(80));
             assert.equal(+(await token.totalSupply()), vs(99999990));
         });
     });
@@ -513,6 +514,18 @@ contract('PaymentService', function (accounts) {
             hb1 = +(await ps.methods["heldBalanceByTime(address,uint256)"](accounts[4], ht1));
 
             assert.equal(hb1, 0);
+        });
+
+        it('try to make 2 holds in same time', async () => {
+            await ps.hold(vs(100), {from: accounts[4]});
+
+            try {
+                await ps.hold(vs(200), {from: accounts[4]});
+                throw "Fail!\n Exception must be thrown before";
+            } catch (error) {assert(error.message.includes("Time point already occupied"));}
+
+            assert.equal(+(await ps.heldBalanceOf(accounts[4])), vs(100));
+            assert.equal(+(await ps.totalHeld()), vs(100));
         });
     });
 });

@@ -19,5 +19,5 @@ interface IPaymentService {
 
     function transfer(address to, uint amount) external;
 
-    function payService(string calldata service, address _to, uint amount) external;
+    function payService(string calldata service, uint amount) external;
 }
