@@ -23,9 +23,11 @@
   },
   "homepage": "https://github.com/illuminates-official/Illuminat-token#readme",
   "dependencies": {
+    "@codechecks/client": "^0.1.10",
     "eth-gas-reporter": "^0.2.11",
     "jshint": "^2.10.2",
-    "truffle": "^5.0.37",
-    "truffle-assertions": "^0.9.1"
+    "truffle": "^5.0.38",
+    "truffle-assertions": "^0.9.1",
+    "typescript": "^3.6.3"
   }
 }

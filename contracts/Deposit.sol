@@ -36,7 +36,8 @@ contract Deposit is Ownable {
 
     function distribute() public {
         uint period = period();
-        require(now >= deployTime.add(period.mul(30 days)).add(30 days));
+        uint currentNow = now;
+        require(currentNow >= deployTime.add(period.mul(30 days)), "Not yet time");
 
         uint holdersCount = currentHoldersCount();
 
@@ -44,28 +45,29 @@ contract Deposit is Ownable {
             revert("No holders");
 
         uint currentBalance = balance();
+        uint validTotalHeldBalance = validTotalHeld(currentNow);
 
         for (uint i = 0; i < holdersCount; i++) {
             address holder = currentHolders(i);
             uint holds = heldBalancesTimesCountOf(holder);
             if (holds > 0) {
-                if (heldBalancesTimesRecordOf(holder, 0) < now.sub(30 days)) {
+                if (heldBalancesTimesRecordOf(holder, 0) <= currentNow.sub(30 days)) {
                     uint lastDistribution = lastDistributionPeriodOf(holder);
                     if (lastDistribution == period.sub(1)) {
                         uint validHold;
                         for (uint j = 0; j < holds; j++) {
                             uint time = heldBalancesTimesRecordOf(holder, j);
-                            if (time <= now.sub(30 days))
+                            if (time <= currentNow.sub(30 days))
                                 validHold = validHold.add(heldBalanceByTime(holder, time));
                         }
                         if (validHold > 0) {
                             _lastDistributionPeriod[holder] = period;
-                            uint amount = currentBalance.mul(validHold.div(totalHeld()));
+                            uint amount = currentBalance.mul((validHold.mul(10000)).div(validTotalHeldBalance)).div(10000);
                             _transfer(holder, amount);
                         }
                     } else {
                         uint difference = period.sub(lastDistribution);
-                        if (heldBalancesTimesRecordOf(holder, 0) < now.sub((difference).mul(30 days))){
+                        if (heldBalancesTimesRecordOf(holder, 0) < currentNow.sub((difference).mul(30 days))){
                             uint validHold;
                             for (uint j = 0; j < holds; j++) {
                                 uint time = heldBalancesTimesRecordOf(holder, j);
@@ -74,7 +76,7 @@ contract Deposit is Ownable {
                             }
                             if (validHold > 0) {
                                 _lastDistributionPeriod[holder] = period;
-                                uint amount = currentBalance.mul(validHold.div(totalHeld()));
+                            uint amount = currentBalance.mul((validHold.mul(10000)).div(validTotalHeldBalance)).div(10000);
                                 _transfer(holder, amount);
                             }
                         }
@@ -112,6 +114,20 @@ contract Deposit is Ownable {
         return paymentService.totalHeld();
     }
 
+    function validTotalHeld(uint time) public view returns(uint) {
+        uint validHeld;
+        for (uint i = 0; i < currentHoldersCount(); i++) {
+            address holder = currentHolders(i);
+            for (uint j = 0; j < heldBalancesTimesCountOf(holder); j++) {
+                uint heldTime = heldBalancesTimesRecordOf(holder, j);
+                if (heldTime <= time.sub(30 days)){
+                    validHeld = validHeld.add(heldBalanceByTime(holder, heldTime));
+                }
+            }
+        }
+        return validHeld;
+    }
+
     function currentHolders(uint index) public view returns(address) {
         return paymentService.currentHolders(index);
     }
@@ -133,6 +149,6 @@ contract Deposit is Ownable {
     }
 
     function balance() public view returns(uint) {
-        token.balanceOf(address(this));
+        return token.balanceOf(address(this));
     }
 }
