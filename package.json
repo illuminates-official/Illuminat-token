@@ -9,6 +9,7 @@
   },
   "scripts": {
     "truffle": "truffle",
+    "t": "truffle",
     "td": "truffle develop",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

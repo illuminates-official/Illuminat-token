@@ -12,10 +12,12 @@ contract Deposit is Ownable {
     IToken public token;
     IPaymentService public paymentService;
     uint public deployTime;
+    uint public accuracy;
     mapping(address => uint) private _lastDistributionPeriod;
 
     constructor() public {
         deployTime = now;
+        accuracy = 10 ** 12;
     }
 
     function () external {
@@ -34,10 +36,13 @@ contract Deposit is Ownable {
         _transfer(to, amount);
     }
 
+    function setAccuracy(uint newAccuracy) public onlyOwner {
+        accuracy = newAccuracy;
+    }
+
     function distribute() public {
         uint period = period();
-        uint currentNow = now;
-        require(currentNow >= deployTime.add(period.mul(30 days)), "Not yet time");
+        require(now >= deployTime.add(period.mul(30 days)), "Not yet time");
 
         uint holdersCount = currentHoldersCount();
 
@@ -45,38 +50,43 @@ contract Deposit is Ownable {
             revert("No holders");
 
         uint currentBalance = balance();
-        uint validTotalHeldBalance = validTotalHeld(currentNow);
+        uint validTotalHeldBalance = validTotalHeld(now);
 
         for (uint i = 0; i < holdersCount; i++) {
             address holder = currentHolders(i);
             uint holds = heldBalancesTimesCountOf(holder);
             if (holds > 0) {
-                if (heldBalancesTimesRecordOf(holder, 0) <= currentNow.sub(30 days)) {
+                if (heldBalancesTimesRecordOf(holder, 0) <= now.sub(30 days)) {
                     uint lastDistribution = lastDistributionPeriodOf(holder);
                     if (lastDistribution == period.sub(1)) {
                         uint validHold;
                         for (uint j = 0; j < holds; j++) {
                             uint time = heldBalancesTimesRecordOf(holder, j);
-                            if (time <= currentNow.sub(30 days))
+                            if (time <= now.sub(30 days))
                                 validHold = validHold.add(heldBalanceByTime(holder, time));
                         }
                         if (validHold > 0) {
                             _lastDistributionPeriod[holder] = period;
-                            uint amount = currentBalance.mul((validHold.mul(10000)).div(validTotalHeldBalance)).div(10000);
+                            uint amount = currentBalance.mul((validHold.mul(accuracy)).div(validTotalHeldBalance)).div(accuracy);
                             _transfer(holder, amount);
                         }
                     } else {
                         uint difference = period.sub(lastDistribution);
-                        if (heldBalancesTimesRecordOf(holder, 0) < currentNow.sub((difference).mul(30 days))){
+                        uint longestHold = heldBalancesTimesRecordOf(holder, 0);
+                        uint periods = (now.sub(longestHold)).div(30 days);
+                        uint notPaidPeriods = periods.sub(lastDistribution);
+                        if (longestHold <= now.sub((difference.sub(1)).mul(30 days))) {
                             uint validHold;
                             for (uint j = 0; j < holds; j++) {
                                 uint time = heldBalancesTimesRecordOf(holder, j);
-                                if (time <= deployTime.add(lastDistribution.mul(30 days)).sub(30 days))
+                                periods = (now.sub(time)).div(30 days);
+                                notPaidPeriods = periods.sub(lastDistribution);
+                                if (notPaidPeriods > 0)
                                     validHold = validHold.add(heldBalanceByTime(holder, time));
                             }
                             if (validHold > 0) {
                                 _lastDistributionPeriod[holder] = period;
-                            uint amount = currentBalance.mul((validHold.mul(10000)).div(validTotalHeldBalance)).div(10000);
+                                uint amount = currentBalance.mul((validHold.mul(accuracy)).div(validTotalHeldBalance)).div(accuracy);
                                 _transfer(holder, amount);
                             }
                         }
@@ -120,7 +130,7 @@ contract Deposit is Ownable {
             address holder = currentHolders(i);
             for (uint j = 0; j < heldBalancesTimesCountOf(holder); j++) {
                 uint heldTime = heldBalancesTimesRecordOf(holder, j);
-                if (heldTime <= time.sub(30 days)){
+                if (heldTime <= time.sub(30 days)) {
                     validHeld = validHeld.add(heldBalanceByTime(holder, heldTime));
                 }
             }
