@@ -11,8 +11,17 @@ contract Deposit is Ownable {
 
     IToken public token;
     IPaymentService public paymentService;
+
     uint public deployTime;
     uint public accuracy;
+    uint public limit;
+
+    struct _period {
+        uint index;
+        uint balance;
+    }
+
+    mapping(uint => _period) public _periods;
     mapping(address => uint) private _lastDistributionPeriod;
 
     event ValidTotalHeldBalance(uint indexed amount, uint indexed time);
@@ -21,6 +30,7 @@ contract Deposit is Ownable {
     constructor() public {
         deployTime = now;
         accuracy = 10 ** 12;
+        limit = 5;
     }
 
     function () external {
@@ -43,6 +53,10 @@ contract Deposit is Ownable {
         accuracy = newAccuracy;
     }
 
+    function setLimit(uint newLimit) public onlyOwner {
+        limit = newLimit;
+    }
+
     function distribute() public {
         uint period = period();
         require(now >= deployTime.add(period.mul(30 days)), "Not yet time");
@@ -52,12 +66,18 @@ contract Deposit is Ownable {
         if (holdersCount == 0)
             revert("No holders");
 
-        uint currentBalance = balance();
+        if (_periods[period].index == 0)
+            _periods[period].balance = balance();
+
+        uint currentBalance = _periods[period].balance;
         uint validTotalHeldBalance = validTotalHeld(now);
 
         emit ValidTotalHeldBalance(validTotalHeldBalance, now);
 
-        for (uint i = 0; i < holdersCount; i++) {
+        if (holdersCount > _periods[period].index && holdersCount.sub(_periods[period].index) > limit)
+            holdersCount = limit;
+
+        for (uint i = _periods[period].index; i < holdersCount; i++) {
             address holder = currentHolders(i);
             uint holds = heldBalancesTimesCountOf(holder);
             if (holds > 0) {
@@ -65,8 +85,9 @@ contract Deposit is Ownable {
                     uint lastDistribution = lastDistributionPeriodOf(holder);
                     if (lastDistribution == period.sub(1)) {
                         uint validHold;
+                        uint time;
                         for (uint j = 0; j < holds; j++) {
-                            uint time = heldBalancesTimesRecordOf(holder, j);
+                            time = heldBalancesTimesRecordOf(holder, j);
                             if (time <= now.sub(30 days))
                                 validHold = validHold.add(heldBalanceByTime(holder, time));
                         }
@@ -83,8 +104,9 @@ contract Deposit is Ownable {
                         uint periods = (now.sub(longestHold)).div(30 days);
                         uint notPaidPeriods = periods.sub(lastDistribution);
                         if (longestHold <= now.sub((difference.sub(1)).mul(30 days))) {
+                            uint time;
                             for (uint j = 0; j < holds; j++) {
-                                uint time = heldBalancesTimesRecordOf(holder, j);
+                                time = heldBalancesTimesRecordOf(holder, j);
                                 periods = (now.sub(time)).div(30 days);
                                 notPaidPeriods = periods.sub(lastDistribution);
                                 if (notPaidPeriods > 0)
@@ -108,6 +130,7 @@ contract Deposit is Ownable {
                 }
             }
         }
+        _periods[period].index = _periods[period].index.add(limit);
     }
 
     function _transfer(address to, uint amount) private {

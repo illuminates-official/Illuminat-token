@@ -167,6 +167,7 @@ contract('Deposit', function (accounts) {
             await ps.hold(vs(300), {from: accounts[6]});
 
             await deposit.distribute();
+            await deposit.distribute();
 
             assert.equal(+(await token.balanceOf(accounts[4])), 9.001022727272723e+22);
             assert.equal(+(await token.balanceOf(accounts[5])), 9.000818181818181e+22);
@@ -209,6 +210,7 @@ contract('Deposit', function (accounts) {
             await ps.hold(vs(200), {from: accounts[4]});
             await ps.hold(vs(300), {from: accounts[6]});
 
+            await deposit.distribute();
             await deposit.distribute();
 
             assert.equal(+(await token.balanceOf(accounts[4])), 9.001022727272723e+22);
@@ -255,6 +257,7 @@ contract('Deposit', function (accounts) {
             await ps.hold(vs(200), {from: accounts[4]});
             await ps.hold(vs(300), {from: accounts[6]});
 
+            await deposit.distribute();
             await deposit.distribute();
 
             assert.equal(+(await token.balanceOf(accounts[4])), 9.001022727272723e+22);

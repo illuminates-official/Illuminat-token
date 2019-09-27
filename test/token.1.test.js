@@ -1,226 +1,226 @@
-const TokenContract = artifacts.require("./Token.sol");
+// const TokenContract = artifacts.require("./Token.sol");
 
 
-const increaseTime = function (duration) {
-    const id = Date.now();
-    return new Promise((resolve, reject) => {
-        web3.currentProvider.send({
-            jsonrpc: '2.0',
-            method: 'evm_increaseTime',
-            params: [duration],
-            id: id,
-        }, err1 => {
-            if (err1) return reject(err1);
+// const increaseTime = function (duration) {
+//     const id = Date.now();
+//     return new Promise((resolve, reject) => {
+//         web3.currentProvider.send({
+//             jsonrpc: '2.0',
+//             method: 'evm_increaseTime',
+//             params: [duration],
+//             id: id,
+//         }, err1 => {
+//             if (err1) return reject(err1);
 
-            web3.currentProvider.send({
-                jsonrpc: '2.0',
-                method: 'evm_mine',
-                id: id + 1,
-            }, (err2, res) => {
-                return err2 ? reject(err2) : resolve(res);
-            });
-        });
-    });
-};
+//             web3.currentProvider.send({
+//                 jsonrpc: '2.0',
+//                 method: 'evm_mine',
+//                 id: id + 1,
+//             }, (err2, res) => {
+//                 return err2 ? reject(err2) : resolve(res);
+//             });
+//         });
+//     });
+// };
 
-const hour = 3600;
-const day = hour * 24;
-const decimals = 10**18;
+// const hour = 3600;
+// const day = hour * 24;
+// const decimals = 10**18;
 
-function v(value){
-    return (value * decimals).toString();
-}
+// function v(value){
+//     return (value * decimals).toString();
+// }
 
-function dec(decimals){
-    return '0'.repeat(decimals);
-}
+// function dec(decimals){
+//     return '0'.repeat(decimals);
+// }
 
-function vs(value){
-    return (value.toString() + dec(18));
-}
-
-
-contract('Token\n\ttoken.1\n', function (accounts) {
-
-    let tokenOwner = accounts[0];
-    let auctionOwner = accounts[1];
-    let sale = accounts[2];
-    let advisors = accounts[4];
-    let bounty = accounts[5];
-    let team = accounts[6];
-    let deposite = accounts[7];
-
-    let zeroAddress = "0x0000000000000000000000000000000000000000";
-
-    let ab = vs(1000000);
-    let bb = vs(2000000);
-    let tb = vs(15000000);
-    let totalSupply = vs(100000000);
-
-    let token;
-
-    let recievers = [accounts[8], accounts[9]];
-    let amounts = [vs(120), vs(230)];
-
-    describe('Token information', async () => {
-        it('token init', async () => {
-            token = await TokenContract.new({from: tokenOwner});
-        });                
-        it('LUM name', async function () {
-            assert.equal(await token.name(), "Illuminat token");
-        });
-        it('LUM symbol', async function () {
-            assert.equal(await token.symbol(), "LUM");
-        });
-        it('LUM decimal', async function () {
-            assert.equal(await token.decimals(), 18);
-        });
-        it('total amount of tokens', async function () {
-            assert.equal(await token.totalSupply(), totalSupply);
-        });
-        it('owner check', async function () {
-            assert.equal(await token.owner(), tokenOwner);
-        });
-    });
+// function vs(value){
+//     return (value.toString() + dec(18));
+// }
 
 
-    describe('Token functionality', async () => {
-        beforeEach('init', async function () {
-            token = await TokenContract.new({from: tokenOwner});
-        });
+// contract('Token\n\ttoken.1\n', function (accounts) {
 
-        it('service pay', async function () {
-            await token.setDepositAddress(deposite, {from: tokenOwner});
-            assert.equal(+(await token.balanceOf(deposite)), 0);
+//     let tokenOwner = accounts[0];
+//     let auctionOwner = accounts[1];
+//     let sale = accounts[2];
+//     let advisors = accounts[4];
+//     let bounty = accounts[5];
+//     let team = accounts[6];
+//     let deposite = accounts[7];
 
-            await token.sendTokens([bounty], [vs(3000)], {from: tokenOwner});
+//     let zeroAddress = "0x0000000000000000000000000000000000000000";
 
-            await token.payService("test", auctionOwner, vs(100), {from: bounty});
-            assert.equal(+(await token.balanceOf(deposite)), vs(10));
-            assert.equal(+(await token.balanceOf(auctionOwner)), vs(80));
-            assert.equal(+(await token.totalSupply()), vs(100000000-10));
+//     let ab = vs(1000000);
+//     let bb = vs(2000000);
+//     let tb = vs(15000000);
+//     let totalSupply = vs(100000000);
 
-            await token.payService("test", auctionOwner, vs(2000), {from: bounty});
-            assert.equal(+(await token.balanceOf(deposite)), vs(210));
-            assert.equal(+(await token.balanceOf(auctionOwner)), vs(1680));
-            assert.equal(+(await token.totalSupply()), vs(100000000-210));
-        });
+//     let token;
 
-        it('send ether', async () => {
-            bal1 = await web3.eth.getBalance(accounts[9]);
-            balc1 = await web3.eth.getBalance(token.address);
-            try {
-                await web3.eth.sendTransaction({from: accounts[9], to: token.address, gas: 150000, value: 1 * decimals});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("revert"));}
+//     let recievers = [accounts[8], accounts[9]];
+//     let amounts = [vs(120), vs(230)];
 
-            bal2 = await web3.eth.getBalance(accounts[9]);
-            balc2 = await web3.eth.getBalance(token.address);
-
-            assert(0 < bal2 - bal1 < 0.01 * decimals);
-            assert(2 < 0 < 5)
-            assert.equal(balc1, 0);
-            assert.equal(balc2, 0);
-        });
-    });
-
-
-    describe('Requirement check', async () => {
-        beforeEach('init', async function () {
-            token = await TokenContract.new({from: tokenOwner});
-        });
-
-        it('service check (deposit address is zero)', async function () {
-            await token.sendTokens([bounty], [vs(2000000)], {from: tokenOwner});
-
-            try {
-                await token.payService("test", auctionOwner, vs(100), {from: bounty});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
-            assert.equal(+(await token.balanceOf(deposite)), 0);
-            assert.equal(+(await token.balanceOf(bounty)), vs(2000000));
-            assert.equal(+(await token.balanceOf(auctionOwner)), 0);
-            assert.equal(+(await token.totalSupply()), totalSupply);
-
-            await token.setDepositAddress(deposite, {from: tokenOwner});
-
-            await token.payService("test", auctionOwner, vs(100), {from: bounty});
-            assert.equal(+(await token.balanceOf(deposite)), vs(10));
-            assert.equal(+(await token.balanceOf(bounty)), vs(2000000-100));
-            assert.equal(+(await token.balanceOf(auctionOwner)), vs(80));
-            assert.equal(+(await token.totalSupply()), vs(100000000-10));
-        });
-
-        it('try to set deposite address not by owner', async function () {
-            try {
-                await token.setDepositAddress(deposite, {from: auctionOwner});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
-        });
-    });
+//     describe('Token information', async () => {
+//         it('token init', async () => {
+//             token = await TokenContract.new({from: tokenOwner});
+//         });                
+//         it('LUM name', async function () {
+//             assert.equal(await token.name(), "Illuminat token");
+//         });
+//         it('LUM symbol', async function () {
+//             assert.equal(await token.symbol(), "LUM");
+//         });
+//         it('LUM decimal', async function () {
+//             assert.equal(await token.decimals(), 18);
+//         });
+//         it('total amount of tokens', async function () {
+//             assert.equal(await token.totalSupply(), totalSupply);
+//         });
+//         it('owner check', async function () {
+//             assert.equal(await token.owner(), tokenOwner);
+//         });
+//     });
 
 
-    describe('Sending tokens', async () => {
+//     describe('Token functionality', async () => {
+//         beforeEach('init', async function () {
+//             token = await TokenContract.new({from: tokenOwner});
+//         });
 
-        beforeEach('init', async () => {
-            token = await TokenContract.new({from: tokenOwner});
-        });
+//         it('service pay', async function () {
+//             await token.setDepositAddress(deposite, {from: tokenOwner});
+//             assert.equal(+(await token.balanceOf(deposite)), 0);
 
-        it('send tokens', async () => {
-            await token.sendTokens(recievers, amounts, {from: tokenOwner});
+//             await token.sendTokens([bounty], [vs(3000)], {from: tokenOwner});
 
-            assert.equal(+(await token.balanceOf(accounts[8])), amounts[0]);
-            assert.equal(+(await token.balanceOf(accounts[9])), amounts[1]);
-            assert.equal(+(await token.balanceOf(token.address)), +vs(100000000 - 350));
-        });
+//             await token.payService("test", auctionOwner, vs(100), {from: bounty});
+//             assert.equal(+(await token.balanceOf(deposite)), vs(10));
+//             assert.equal(+(await token.balanceOf(auctionOwner)), vs(80));
+//             assert.equal(+(await token.totalSupply()), vs(100000000-10));
 
-        it('sending tokens (different length)', async () => {
-            recievers = [accounts[9]];
-            amounts = [vs(120), vs(230)];
+//             await token.payService("test", auctionOwner, vs(2000), {from: bounty});
+//             assert.equal(+(await token.balanceOf(deposite)), vs(210));
+//             assert.equal(+(await token.balanceOf(auctionOwner)), vs(1680));
+//             assert.equal(+(await token.totalSupply()), vs(100000000-210));
+//         });
 
-            try {
-                await token.sendTokens(recievers, amounts, {from: tokenOwner});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("The length of the arrays must be equal"));}
-            assert.equal(+(await token.balanceOf(accounts[8])), 0);
+//         it('send ether', async () => {
+//             bal1 = await web3.eth.getBalance(accounts[9]);
+//             balc1 = await web3.eth.getBalance(token.address);
+//             try {
+//                 await web3.eth.sendTransaction({from: accounts[9], to: token.address, gas: 150000, value: 1 * decimals});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("revert"));}
 
-            recievers = [accounts[9], accounts[8]];
-            amounts = [vs(230)];
+//             bal2 = await web3.eth.getBalance(accounts[9]);
+//             balc2 = await web3.eth.getBalance(token.address);
 
-            try {
-                await token.sendTokens(recievers, amounts, {from: tokenOwner});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("The length of the arrays must be equal"));}
-            assert.equal(+(await token.balanceOf(accounts[8])), 0);
+//             assert(0 < bal2 - bal1 < 0.01 * decimals);
+//             assert(2 < 0 < 5)
+//             assert.equal(balc1, 0);
+//             assert.equal(balc2, 0);
+//         });
+//     });
 
-            recievers = [accounts[9], accounts[8]];
-            amounts = [vs(120), vs(230)];
-        });
 
-        it('sending tokens (reciever is zero address)', async () => {
-            recievers = [accounts[9], zeroAddress];
-            amounts = [vs(120), vs(230)];
+//     describe('Requirement check', async () => {
+//         beforeEach('init', async function () {
+//             token = await TokenContract.new({from: tokenOwner});
+//         });
 
-            try {
-                await token.sendTokens(recievers, amounts, {from: tokenOwner});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
-            assert.equal(+(await token.balanceOf(accounts[8])), 0);
-            assert.equal(+(await token.balanceOf(accounts[9])), 0);
-            assert.equal(+(await token.balanceOf(token.address)), +vs(100000000));
-        });
+//         it('service check (deposit address is zero)', async function () {
+//             await token.sendTokens([bounty], [vs(2000000)], {from: tokenOwner});
 
-        it('sending tokens (not by owner)', async () => {
-            recievers = [accounts[8], accounts[9]];
-            amounts = [vs(120), vs(230)];
+//             try {
+//                 await token.payService("test", auctionOwner, vs(100), {from: bounty});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
+//             assert.equal(+(await token.balanceOf(deposite)), 0);
+//             assert.equal(+(await token.balanceOf(bounty)), vs(2000000));
+//             assert.equal(+(await token.balanceOf(auctionOwner)), 0);
+//             assert.equal(+(await token.totalSupply()), totalSupply);
 
-            try {
-                await token.sendTokens(recievers, amounts, {from: sale});
-                throw "Fail!\n Exception must be thrown before";
-            } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
-            assert.equal(+(await token.balanceOf(accounts[8])), 0);
-            assert.equal(+(await token.balanceOf(accounts[9])), 0);
-            assert.equal(+(await token.balanceOf(token.address)), +vs(100000000));
-        });
-    });  
- });
+//             await token.setDepositAddress(deposite, {from: tokenOwner});
+
+//             await token.payService("test", auctionOwner, vs(100), {from: bounty});
+//             assert.equal(+(await token.balanceOf(deposite)), vs(10));
+//             assert.equal(+(await token.balanceOf(bounty)), vs(2000000-100));
+//             assert.equal(+(await token.balanceOf(auctionOwner)), vs(80));
+//             assert.equal(+(await token.totalSupply()), vs(100000000-10));
+//         });
+
+//         it('try to set deposite address not by owner', async function () {
+//             try {
+//                 await token.setDepositAddress(deposite, {from: auctionOwner});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
+//         });
+//     });
+
+
+//     describe('Sending tokens', async () => {
+
+//         beforeEach('init', async () => {
+//             token = await TokenContract.new({from: tokenOwner});
+//         });
+
+//         it('send tokens', async () => {
+//             await token.sendTokens(recievers, amounts, {from: tokenOwner});
+
+//             assert.equal(+(await token.balanceOf(accounts[8])), amounts[0]);
+//             assert.equal(+(await token.balanceOf(accounts[9])), amounts[1]);
+//             assert.equal(+(await token.balanceOf(token.address)), +vs(100000000 - 350));
+//         });
+
+//         it('sending tokens (different length)', async () => {
+//             recievers = [accounts[9]];
+//             amounts = [vs(120), vs(230)];
+
+//             try {
+//                 await token.sendTokens(recievers, amounts, {from: tokenOwner});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("The length of the arrays must be equal"));}
+//             assert.equal(+(await token.balanceOf(accounts[8])), 0);
+
+//             recievers = [accounts[9], accounts[8]];
+//             amounts = [vs(230)];
+
+//             try {
+//                 await token.sendTokens(recievers, amounts, {from: tokenOwner});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("The length of the arrays must be equal"));}
+//             assert.equal(+(await token.balanceOf(accounts[8])), 0);
+
+//             recievers = [accounts[9], accounts[8]];
+//             amounts = [vs(120), vs(230)];
+//         });
+
+//         it('sending tokens (reciever is zero address)', async () => {
+//             recievers = [accounts[9], zeroAddress];
+//             amounts = [vs(120), vs(230)];
+
+//             try {
+//                 await token.sendTokens(recievers, amounts, {from: tokenOwner});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("ERC20: transfer to the zero address"));}
+//             assert.equal(+(await token.balanceOf(accounts[8])), 0);
+//             assert.equal(+(await token.balanceOf(accounts[9])), 0);
+//             assert.equal(+(await token.balanceOf(token.address)), +vs(100000000));
+//         });
+
+//         it('sending tokens (not by owner)', async () => {
+//             recievers = [accounts[8], accounts[9]];
+//             amounts = [vs(120), vs(230)];
+
+//             try {
+//                 await token.sendTokens(recievers, amounts, {from: sale});
+//                 throw "Fail!\n Exception must be thrown before";
+//             } catch (error) {assert(error.message.includes("Ownable: caller is not the owner"));}
+//             assert.equal(+(await token.balanceOf(accounts[8])), 0);
+//             assert.equal(+(await token.balanceOf(accounts[9])), 0);
+//             assert.equal(+(await token.balanceOf(token.address)), +vs(100000000));
+//         });
+//     });  
+//  });
